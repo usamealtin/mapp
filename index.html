@@ -1,0 +1,3181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🇹🇷 Türkiye Şehir & Plaka Oyunu</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Nunito',sans-serif; color:#e2e8f0; min-height:100vh;
+    background:linear-gradient(135deg,#0f172a,#1e293b 55%,#0b1220);
+    overflow-x:hidden;
+  }
+  .blob { position:fixed; border-radius:50%; filter:blur(90px); opacity:.35; z-index:0; pointer-events:none; animation:floaty 14s ease-in-out infinite; }
+  .b1 { width:420px; height:420px; background:#3b82f6; top:-120px; left:-120px; }
+  .b2 { width:380px; height:380px; background:#f59e0b; bottom:-140px; right:-100px; animation-delay:-6s; }
+  @keyframes floaty { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,40px) scale(1.08)} }
+
+  .wrap { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:18px 16px 60px; }
+  header { text-align:center; padding:6px 0 16px; animation:fadeInUp .6s ease both; position:relative; }
+  h1 { font-family:'Baloo 2',cursive; font-size:clamp(1.45rem,4vw,2.3rem); letter-spacing:.5px; }
+  h1 span { color:#fbbf24; }
+  .sub { color:#94a3b8; margin-top:2px; font-size:.9rem; }
+
+  .header-actions { position:absolute; right:0; top:10px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .icon-btn {
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+    color:#e2e8f0; border-radius:12px; padding:7px 12px; font-size:.83rem; font-family:'Nunito',sans-serif; font-weight:700;
+  }
+
+  .card {
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+    border-radius:20px; padding:20px; backdrop-filter:blur(10px);
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+  }
+
+  /* Başlangıç Ekranı & Pasaport */
+  #startScreen { max-width:820px; margin:8px auto; text-align:center; animation:fadeInUp .6s .1s ease both; }
+
+  .passport-banner {
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+    background:linear-gradient(135deg,rgba(34,197,94,.14),rgba(59,130,246,.14));
+    border:1px solid rgba(74,222,128,.32); border-radius:16px; padding:12px 16px; margin-bottom:16px; text-align:left;
+  }
+  .passport-info { flex:1; min-width:220px; }
+  .passport-title { font-family:'Baloo 2',cursive; font-size:1.05rem; color:#4ade80; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .streak-pill {
+    background:rgba(249,115,22,.22); border:1px solid rgba(251,146,60,.5); color:#fdba74;
+    font-size:.78rem; padding:2px 9px; border-radius:999px; font-family:'Nunito',sans-serif; font-weight:800;
+  }
+  .passport-sub { font-size:.81rem; color:#cbd5e1; margin:2px 0 7px; }
+  .passport-bar { height:8px; background:rgba(255,255,255,.12); border-radius:999px; overflow:hidden; }
+  .passport-fill { height:100%; background:linear-gradient(90deg,#22c55e,#fbbf24); border-radius:999px; transition:width .4s ease; }
+
+  .challenge-alert {
+    background:linear-gradient(135deg,rgba(245,158,11,.22),rgba(244,63,94,.18));
+    border:1.5px solid #fbbf24; border-radius:14px; padding:11px 14px; margin-bottom:14px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; text-align:left;
+  }
+
+  .setup-group { text-align:left; margin-bottom:14px; }
+  .setup-title { font-size:.76rem; text-transform:uppercase; letter-spacing:.7px; color:#94a3b8; font-weight:800; margin-bottom:7px; }
+  .pill-row { display:flex; gap:7px; flex-wrap:wrap; }
+  .pill {
+    background:rgba(255,255,255,.07); color:#cbd5e1; border:1.5px solid rgba(255,255,255,.15);
+    padding:7px 12px; border-radius:12px; font-family:'Nunito',sans-serif; font-weight:700; font-size:.84rem;
+  }
+  .pill.active {
+    background:rgba(251,191,36,.18); color:#fbbf24; border-color:#fbbf24;
+    box-shadow:0 0 0 3px rgba(251,191,36,.12);
+  }
+  .pill.reg-pill { font-size:.8rem; padding:6px 10px; border-radius:10px; }
+
+  .duel-inputs {
+    display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;
+    background:rgba(255,255,255,.04); padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.1);
+  }
+  .duel-inputs label { margin:0 0 4px; font-size:.8rem; }
+  .duel-inputs input { padding:9px 12px; font-size:.95rem; }
+
+  /* Oyun Ekranı */
+  #gameScreen { display:none; grid-template-columns:1.4fr 1fr; gap:18px; align-items:start; animation:fadeInUp .5s ease both; }
+  @media (max-width:960px){
+    #gameScreen { grid-template-columns:1fr; }
+    .header-actions { position:static; justify-content:center; margin-top:10px; }
+  }
+
+  .hud { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
+  .chip { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); padding:5px 11px; border-radius:999px; font-size:.84rem; }
+  .chip b { color:#fbbf24; }
+  .chip.lives { letter-spacing:2px; }
+  .chip.timer { border-color:rgba(56,189,248,.45); background:rgba(14,165,233,.14); }
+  .chip.timer b { color:#38bdf8; }
+  .chip.timer.urgent { border-color:#f43f5e; background:rgba(244,63,94,.22); animation:pulseUrgent .7s infinite; }
+  .chip.timer.urgent b { color:#fda4af; }
+  @keyframes pulseUrgent { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+  .chip.bump { animation:bump .4s ease; }
+  @keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.22)} 100%{transform:scale(1)} }
+
+  .duel-bar { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .duel-player {
+    padding:9px 12px; border-radius:12px; background:rgba(255,255,255,.05);
+    border:1.5px solid rgba(255,255,255,.12); display:flex; justify-content:space-between; align-items:center;
+    font-size:.9rem; transition:all .25s;
+  }
+  .duel-player.turn { background:rgba(251,191,36,.16); border-color:#fbbf24; box-shadow:0 0 0 3px rgba(251,191,36,.12); }
+  .duel-player b { font-family:'Baloo 2',cursive; font-size:1.15rem; color:#fbbf24; }
+
+  /* Harita & Fiziki Katman */
+  #mapBox { position:relative; }
+  .map-toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:6px; flex-wrap:wrap; }
+  .map-badge { font-size:.78rem; color:#94a3b8; font-weight:700; }
+  .zoom-controls { display:flex; gap:5px; flex-wrap:wrap; }
+  #map {
+    width:100%; height:auto; display:block; border-radius:12px;
+    background:rgba(9,17,34,.48); touch-action:none; user-select:none;
+  }
+  #map.panning { cursor:grabbing !important; }
+  #map.blind-cursor { cursor:crosshair !important; }
+
+  .land-bg { fill:#1e3a68; stroke:#60a5fa; stroke-width:1.4; stroke-linejoin:round; }
+  .prov {
+    fill:#24457a;
+    stroke:rgba(148,197,253,.42);
+    stroke-width:.8;
+    stroke-linejoin:round;
+    transition:fill .22s ease, stroke .22s ease, opacity .25s ease;
+  }
+  .prov.reg-marmara   { fill:#25497e; }
+  .prov.reg-ege       { fill:#1f5276; }
+  .prov.reg-akdeniz   { fill:#294882; }
+  .prov.reg-icanadolu { fill:#2b4475; }
+  .prov.reg-karadeniz { fill:#1e4d6b; }
+  .prov.reg-dogu      { fill:#314275; }
+  .prov.reg-guneydogu { fill:#364570; }
+
+  /* Kör Harita: sınırları gizle, tek parça kara silueti göster */
+  #map.blind-mode .prov {
+    fill:#1d3b6b !important;
+    stroke:#1d3b6b !important;
+    stroke-width:0 !important;
+  }
+  #map.blind-mode .dot { opacity:0; }
+
+  /* Pasaport görünümü */
+  #map.passport-view .prov { fill:#1e293b; stroke:rgba(148,163,184,.3); }
+  #map.passport-view .prov.mastered { fill:rgba(34,197,94,.42) !important; stroke:rgba(74,222,128,.8) !important; }
+
+  #map.click-mode .prov { cursor:pointer; }
+  #map.click-mode .prov:hover { fill:#3b6cb5; stroke:#fde047; stroke-width:1.35; }
+  #map:not(.click-mode):not(.blind-mode) .prov:hover { filter:brightness(1.12); }
+
+  .prov.active { fill:rgba(244,63,94,.38) !important; stroke:#fb7185 !important; stroke-width:1.7 !important; }
+  .prov.center-hub { fill:rgba(245,158,11,.42) !important; stroke:#fbbf24 !important; stroke-width:1.8 !important; }
+  .prov.route-start { fill:rgba(59,130,246,.48) !important; stroke:#60a5fa !important; stroke-width:1.8 !important; }
+  .prov.route-end { fill:rgba(245,158,11,.48) !important; stroke:#fbbf24 !important; stroke-width:1.8 !important; }
+  .prov.route-step { fill:rgba(34,197,94,.42) !important; stroke:#4ade80 !important; stroke-width:1.6 !important; }
+  .prov.wrong-pick { fill:rgba(239,68,68,.55) !important; stroke:#fca5a5 !important; stroke-width:1.7 !important; }
+  .prov.good { fill:rgba(34,197,94,.40) !important; stroke:rgba(74,222,128,.8) !important; }
+  .prov.half { fill:rgba(251,191,36,.34) !important; stroke:rgba(251,191,36,.8) !important; }
+  .prov.bad  { fill:rgba(248,113,113,.32) !important; stroke:rgba(248,113,113,.8) !important; }
+
+  .lake { fill:#0f294a; stroke:rgba(96,165,250,.45); stroke-width:.7; pointer-events:none; }
+  .dot { fill:rgba(255,255,255,.48); transition:fill .25s, opacity .25s; pointer-events:none; }
+  .dot.good { fill:#22c55e; }
+  .dot.half { fill:#fbbf24; }
+  .dot.bad  { fill:#f87171; }
+
+  /* Fiziki Coğrafya Katmanı */
+  .river-path {
+    fill:none; stroke:#38bdf8; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round;
+    opacity:.78; pointer-events:none;
+  }
+  .river-label {
+    font-family:'Nunito',sans-serif; font-size:7.5px; font-weight:800; fill:#7dd3fc;
+    paint-order:stroke; stroke:#091122; stroke-width:2px; pointer-events:none;
+  }
+  .peak-tri { fill:#f59e0b; stroke:#fff; stroke-width:.7; pointer-events:none; }
+  .peak-label {
+    font-family:'Nunito',sans-serif; font-size:7.5px; font-weight:800; fill:#fde68a;
+    paint-order:stroke; stroke:#091122; stroke-width:2.2px; pointer-events:none;
+  }
+
+  #distanceLine {
+    stroke:#fbbf24; stroke-width:2.2; stroke-dasharray:5 4; fill:none; pointer-events:none;
+    animation:dashMove 1s linear infinite;
+  }
+  #routePolyline {
+    stroke:#4ade80; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; fill:none; pointer-events:none;
+  }
+  #optimalRoutePolyline {
+    stroke:#fbbf24; stroke-width:2; stroke-dasharray:4 4; fill:none; pointer-events:none;
+  }
+  @keyframes dashMove { to { stroke-dashoffset:-18; } }
+
+  #marker { opacity:0; transition:opacity .25s; pointer-events:none; }
+  #marker.on { opacity:1; }
+  #marker .halo { fill:none; stroke:#f43f5e; stroke-width:2; transform-box:fill-box; transform-origin:center; animation:halo 1.4s ease-out infinite; }
+  @keyframes halo { 0%{transform:scale(.4); opacity:1} 100%{transform:scale(2.4); opacity:0} }
+  #marker .core { fill:#f43f5e; stroke:#fff; stroke-width:1.5; transform-box:fill-box; transform-origin:center; animation:beat 1.4s ease-in-out infinite; }
+  @keyframes beat { 0%,100%{transform:scale(1)} 50%{transform:scale(1.35)} }
+  #marker .markQ { font-family:'Baloo 2',cursive; font-size:20px; fill:#fbbf24; text-anchor:middle; paint-order:stroke; stroke:#0f172a; stroke-width:4px; transform-box:fill-box; transform-origin:center; animation:bob 1.4s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
+  #cityLabel { font-family:'Baloo 2',cursive; font-size:15px; fill:#fff; text-anchor:middle; paint-order:stroke; stroke:#0f172a; stroke-width:4px; opacity:0; pointer-events:none; }
+  #cityLabel.on { opacity:1; animation:popIn .4s cubic-bezier(.2,1.6,.4,1) both; }
+  @keyframes popIn { from{transform:scale(.5); opacity:0} to{transform:scale(1); opacity:1} }
+
+  .legend { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; font-size:.75rem; color:#94a3b8; margin-top:10px; }
+  .legend-dots { display:flex; gap:9px; flex-wrap:wrap; }
+  .legend span { display:inline-flex; align-items:center; gap:4px; }
+  .lg-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+
+  .qHeader { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .qTitle { font-family:'Baloo 2',cursive; font-size:1.22rem; }
+  .qHint { color:#94a3b8; font-size:.86rem; margin:4px 0 12px; }
+  .hint-box {
+    display:none; margin-bottom:10px; padding:8px 12px; border-radius:10px;
+    background:rgba(59,130,246,.16); border:1px solid rgba(96,165,250,.35);
+    color:#93c5fd; font-size:.85rem; font-weight:600;
+  }
+
+  label { display:block; font-size:.84rem; color:#cbd5e1; margin:11px 0 5px; font-weight:600; }
+  input, select {
+    width:100%; padding:11px 14px; border-radius:12px; font-size:1rem; font-family:inherit;
+    background:rgba(255,255,255,.09); border:1.5px solid rgba(255,255,255,.2); color:#fff; outline:none;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  input:focus { border-color:#fbbf24; box-shadow:0 0 0 3px rgba(251,191,36,.18); }
+  input.ok  { border-color:#22c55e !important; }
+  input.bad { border-color:#ef4444 !important; }
+
+  /* TR Plaka Tasarımı & Dokunmatik Tuş Takımı */
+  .tr-plate-wrap {
+    display:flex; align-items:stretch; border-radius:12px; overflow:hidden;
+    border:2px solid #cbd5e1; background:#f8fafc; box-shadow:0 6px 18px rgba(0,0,0,.28);
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .tr-plate-wrap:focus-within { border-color:#fbbf24; box-shadow:0 0 0 3px rgba(251,191,36,.28); }
+  .tr-plate-wrap.ok  { border-color:#22c55e !important; box-shadow:0 0 0 3px rgba(34,197,94,.25); }
+  .tr-plate-wrap.bad { border-color:#ef4444 !important; box-shadow:0 0 0 3px rgba(239,68,68,.25); }
+  .tr-blue {
+    background:#003399; color:#fff; width:38px; display:flex; flex-direction:column;
+    align-items:center; justify-content:flex-end; padding-bottom:6px;
+    font-weight:800; font-size:.78rem; letter-spacing:.5px; flex-shrink:0;
+  }
+  #plateInput {
+    border:none !important; border-radius:0 !important; background:transparent !important;
+    color:#0f172a !important; font-family:'Baloo 2',cursive; font-size:1.4rem;
+    font-weight:800; letter-spacing:5px; padding:7px 14px; box-shadow:none !important;
+  }
+  #plateInput::placeholder { color:#94a3b8; font-weight:600; letter-spacing:2px; font-size:1rem; }
+
+  .numpad-grid {
+    display:grid; grid-template-columns:repeat(6, 1fr); gap:5px; margin-top:8px;
+  }
+  .numpad-btn {
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); color:#e2e8f0;
+    padding:7px 0; border-radius:9px; font-family:'Baloo 2',cursive; font-size:.98rem; font-weight:700;
+  }
+
+  .target-plate-card {
+    display:flex; align-items:stretch; border-radius:14px; overflow:hidden;
+    border:2.5px solid #e2e8f0; background:#f8fafc; color:#0f172a;
+    margin:8px 0 12px; box-shadow:0 10px 25px rgba(0,0,0,.35);
+  }
+  .target-plate-card .tr-blue { width:44px; font-size:.85rem; padding-bottom:8px; }
+  .target-plate-body {
+    flex:1; padding:11px 14px; display:flex; align-items:center; justify-content:center; gap:10px;
+    font-family:'Baloo 2',cursive; font-size:clamp(1.25rem,3vw,1.65rem); font-weight:800; letter-spacing:.5px;
+  }
+  .target-plate-code { color:#003399; }
+
+  .mini-plate {
+    display:inline-flex; align-items:stretch; border-radius:6px; overflow:hidden;
+    border:1.5px solid #cbd5e1; background:#f8fafc; color:#0f172a;
+    font-family:'Baloo 2',cursive; font-weight:800; font-size:.85rem; vertical-align:middle; margin-left:4px;
+  }
+  .mini-plate span:first-child { background:#003399; color:#fff; font-size:.55rem; padding:2px 4px; display:flex; align-items:flex-end; }
+  .mini-plate span:last-child { padding:1px 7px; letter-spacing:1px; }
+
+  /* Rota Çizme Modu */
+  .route-header-box {
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15);
+    border-radius:14px; padding:10px 14px; margin-bottom:10px;
+  }
+  .route-endpoint { text-align:center; flex:1; }
+  .route-endpoint small { display:block; font-size:.72rem; color:#94a3b8; text-transform:uppercase; font-weight:800; }
+  .route-endpoint b { font-family:'Baloo 2',cursive; font-size:1.18rem; }
+  .route-chain { display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin:8px 0; }
+  .route-node {
+    background:rgba(34,197,94,.18); border:1px solid #4ade80; color:#86efac;
+    padding:4px 9px; border-radius:8px; font-size:.8rem; font-weight:700;
+  }
+  .route-node.start { background:rgba(59,130,246,.22); border-color:#60a5fa; color:#93c5fd; }
+
+  /* Dedektif Modu Kartları */
+  .clue-list { display:flex; flex-direction:column; gap:7px; margin-bottom:10px; }
+  .clue-card {
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15);
+    border-radius:12px; padding:9px 12px; font-size:.86rem; display:flex; justify-content:space-between; align-items:center; gap:8px;
+  }
+  .clue-card.locked { cursor:pointer; background:rgba(251,191,36,.08); border-style:dashed; border-color:rgba(251,191,36,.4); }
+  .clue-card.locked:hover { background:rgba(251,191,36,.15); }
+
+  /* Kültür & Miras Kartı */
+  .heritage-card {
+    background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(168,85,247,.15));
+    border:1.5px solid rgba(251,191,36,.45); border-radius:15px; padding:14px; margin-bottom:10px;
+  }
+  .heritage-tag {
+    display:inline-block; font-size:.74rem; font-weight:800; text-transform:uppercase;
+    background:rgba(251,191,36,.2); color:#fbbf24; padding:2px 9px; border-radius:999px; margin-bottom:5px;
+  }
+  .heritage-title { font-family:'Baloo 2',cursive; font-size:1.32rem; color:#fff; }
+  .heritage-desc { font-size:.86rem; color:#cbd5e1; margin-top:4px; line-height:1.45; }
+
+  /* Komşu İller Slotları */
+  .neighbor-slots { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+  .nb-slot {
+    padding:5px 10px; border-radius:10px; font-size:.82rem; font-weight:700;
+    background:rgba(255,255,255,.06); border:1.5px dashed rgba(255,255,255,.22); color:#94a3b8;
+  }
+  .nb-slot.found { background:rgba(34,197,94,.18); border:1.5px solid #22c55e; color:#4ade80; }
+  .nb-slot.revealed { background:rgba(248,113,113,.16); border:1.5px solid #f87171; color:#fca5a5; }
+
+  /* Atlas Kartı */
+  .atlas-card {
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.14);
+    border-radius:16px; padding:15px; margin-top:8px;
+  }
+  .atlas-neighbors { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .atlas-nb-btn {
+    background:rgba(59,130,246,.18); border:1px solid rgba(96,165,250,.4); color:#93c5fd;
+    padding:4px 10px; border-radius:8px; font-family:'Nunito',sans-serif; font-size:.8rem; font-weight:700;
+  }
+
+  .btns { display:flex; gap:9px; margin-top:14px; flex-wrap:wrap; }
+  button {
+    font-family:'Baloo 2',cursive; font-size:.98rem; padding:10px 18px; border:none; border-radius:12px;
+    cursor:pointer; transition:transform .15s, box-shadow .15s, filter .15s;
+  }
+  button:hover { transform:translateY(-2px); filter:brightness(1.08); }
+  button:active { transform:scale(.97); }
+  button:disabled { opacity:.45; cursor:not-allowed; transform:none; }
+  .btn-primary { background:linear-gradient(135deg,#f59e0b,#f97316); color:#1f1300; box-shadow:0 8px 20px rgba(245,158,11,.35); }
+  .btn-ghost { background:rgba(255,255,255,.1); color:#e2e8f0; border:1px solid rgba(255,255,255,.2); }
+  .btn-sm { font-family:'Nunito',sans-serif; font-weight:700; font-size:.78rem; padding:5px 10px; border-radius:9px; }
+  .btn-big { font-size:1.15rem; padding:13px 34px; }
+
+  #feedback { display:none; margin-top:14px; padding:13px 15px; border-radius:14px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.15); animation:fadeInUp .35s ease both; }
+  #feedback.shake { animation:shake .5s ease; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+  .frow { margin:3px 0; font-size:.93rem; }
+  .ok  { color:#4ade80; }
+  .bad { color:#f87171; }
+  .typo-note { color:#fde047; font-size:.81rem; font-weight:600; }
+  .speed-badge {
+    display:inline-block; background:rgba(56,189,248,.2); border:1px solid #38bdf8;
+    color:#7dd3fc; font-size:.76rem; padding:2px 8px; border-radius:999px; margin-left:6px; vertical-align:middle;
+  }
+  .points { font-family:'Baloo 2',cursive; font-size:1.2rem; margin-top:6px; color:#fbbf24; }
+  .region { color:#93c5fd; font-size:.85rem; margin-top:3px; }
+  .city-fact {
+    margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,.12);
+    color:#e2e8f0; font-size:.85rem; line-height:1.45;
+  }
+
+  /* Rozet Bildirimi (Toast) */
+  #badgeToast {
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(120px);
+    background:linear-gradient(135deg,#1e293b,#0f172a); border:2px solid #fbbf24;
+    border-radius:16px; padding:12px 18px; z-index:120; box-shadow:0 15px 40px rgba(0,0,0,.6);
+    display:flex; align-items:center; gap:12px; transition:transform .4s cubic-bezier(.2,1.5,.4,1);
+    max-width:92vw;
+  }
+  #badgeToast.show { transform:translateX(-50%) translateY(0); }
+
+  /* Modallar */
+  .overlay { display:none; position:fixed; inset:0; background:rgba(5,10,25,.8); z-index:50; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(4px); }
+  .overlay.on { display:flex; animation:fadeInUp .25s ease both; }
+  .modal { max-width:560px; width:100%; max-height:92vh; overflow-y:auto; }
+  .modal h2 { font-family:'Baloo 2',cursive; margin-bottom:6px; }
+  .finalScore { font-family:'Baloo 2',cursive; font-size:2.2rem; color:#fbbf24; line-height:1.1; margin:6px 0 4px; }
+  .finalStats { color:#94a3b8; font-size:.87rem; margin-bottom:12px; }
+
+  .daily-share-box {
+    background:rgba(15,23,42,.75); border:1px solid rgba(251,191,36,.4);
+    border-radius:14px; padding:12px 14px; margin-bottom:12px;
+  }
+  .daily-emoji-grid { font-size:1.2rem; letter-spacing:2px; margin:6px 0 10px; word-break:break-all; }
+
+  .report-box {
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
+    border-radius:14px; padding:11px 13px; margin-bottom:12px;
+  }
+  .report-title { font-size:.76rem; text-transform:uppercase; letter-spacing:.6px; color:#94a3b8; font-weight:800; margin-bottom:8px; }
+  .reg-bar-row { display:flex; align-items:center; gap:8px; font-size:.81rem; margin-bottom:6px; }
+  .reg-bar-name { width:130px; color:#cbd5e1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .reg-bar-track { flex:1; height:8px; background:rgba(255,255,255,.1); border-radius:999px; overflow:hidden; }
+  .reg-bar-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#3b82f6,#22c55e); }
+  .reg-bar-pct { width:40px; text-align:right; font-weight:700; color:#fbbf24; }
+
+  /* Rozet Vitrini Grid */
+  .badge-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin:12px 0; }
+  @media (max-width:520px){ .badge-grid { grid-template-columns:1fr; } }
+  .badge-item {
+    display:flex; align-items:center; gap:10px; padding:10px; border-radius:13px;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); opacity:.52;
+  }
+  .badge-item.unlocked {
+    opacity:1; background:linear-gradient(135deg,rgba(251,191,36,.16),rgba(34,197,94,.12));
+    border-color:rgba(251,191,36,.5);
+  }
+  .badge-ico { font-size:1.6rem; flex-shrink:0; }
+  .badge-name { font-weight:800; font-size:.86rem; color:#f8fafc; }
+  .badge-desc { font-size:.75rem; color:#94a3b8; }
+
+  /* Özel Test Oluşturucu */
+  .city-picker-grid {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(125px, 1fr)); gap:6px;
+    max-height:210px; overflow-y:auto; padding:8px; border-radius:12px;
+    background:rgba(15,23,42,.6); border:1px solid rgba(255,255,255,.12); margin:8px 0;
+  }
+  .pick-chip {
+    text-align:left; font-family:'Nunito',sans-serif; font-size:.78rem; font-weight:700;
+    padding:6px 8px; border-radius:8px; background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.14); color:#cbd5e1;
+  }
+  .pick-chip.selected { background:rgba(34,197,94,.24); border-color:#4ade80; color:#86efac; }
+
+  .board-tabs { display:flex; gap:5px; flex-wrap:wrap; margin:10px 0 12px; }
+  .board-tab {
+    background:rgba(255,255,255,.07); color:#cbd5e1; border:1px solid rgba(255,255,255,.15);
+    padding:5px 9px; border-radius:9px; font-family:'Nunito',sans-serif; font-size:.76rem; font-weight:700;
+  }
+  .board-tab.active { background:rgba(251,191,36,.2); color:#fbbf24; border-color:#fbbf24; }
+
+  #boardList { list-style:none; margin:8px 0 14px; max-height:250px; overflow-y:auto; }
+  #boardList li {
+    display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:12px;
+    background:rgba(255,255,255,.06); margin-bottom:6px;
+  }
+  #boardList li.me { background:rgba(251,191,36,.18); border:1px solid rgba(251,191,36,.5); }
+  #boardList .rk { width:30px; font-size:1.05rem; text-align:center; }
+  #boardList .nm { flex:1; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #boardList .sc { font-family:'Baloo 2',cursive; color:#fbbf24; font-size:.88rem; }
+  .empty { color:#94a3b8; text-align:center; padding:18px; }
+
+  #confettiLayer { position:fixed; inset:0; pointer-events:none; z-index:99; overflow:hidden; }
+  .cf { position:absolute; top:-20px; width:10px; height:14px; border-radius:2px; animation:cfFall linear forwards; }
+  @keyframes cfFall { to { transform:translateY(110vh) rotate(720deg); opacity:.2; } }
+
+  @keyframes fadeInUp { from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:translateY(0)} }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<div class="blob b1"></div><div class="blob b2"></div>
+<div id="confettiLayer"></div>
+<div id="badgeToast">
+  <span style="font-size:1.8rem" id="toastIco">🎖️</span>
+  <div>
+    <div style="font-size:.74rem;color:#fbbf24;font-weight:800;text-transform:uppercase">Yeni Başarım Rozeti!</div>
+    <div style="font-family:'Baloo 2',cursive;font-size:1.05rem" id="toastTitle">İlk Adım</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header>
+    <h1>🇹🇷 <span>Türkiye Şehir & Plaka</span> Oyunu</h1>
+    <div class="sub">10 Oyun Modu · Fiziki Coğrafya · Başarım Rozetleri & Arkadaş Meydan Okuması</div>
+    <div class="header-actions">
+      <button type="button" id="openBadgesHeaderBtn" class="icon-btn">🎖️ Rozetler (<span id="badgeCountHeader">0/14</span>)</button>
+      <button type="button" id="muteBtn" class="icon-btn">🔊 Ses Açık</button>
+    </div>
+  </header>
+
+  <!-- BAŞLANGIÇ EKRANI -->
+  <div id="startScreen" class="card">
+    <!-- Gelen Meydan Okuma Banner'ı -->
+    <div id="incomingChallengeBanner" class="challenge-alert hidden">
+      <div>
+        <div style="font-family:'Baloo 2',cursive;font-size:1.05rem;color:#fbbf24" id="incomingChallengeTitle">⚔️ Meydan Okuma Daveti!</div>
+        <div style="font-size:.82rem;color:#e2e8f0" id="incomingChallengeDesc">Arkadaşın seni aynı sorularda yarışmaya davet etti.</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button type="button" id="acceptChallengeBtn" class="btn-primary btn-sm">⚔️ Kabul Et & Başla</button>
+        <button type="button" id="dismissChallengeBtn" class="btn-ghost btn-sm">✕</button>
+      </div>
+    </div>
+
+    <!-- 81 İl Ustalık Pasaportu & Günlük Seri -->
+    <div class="passport-banner">
+      <div class="passport-info">
+        <div class="passport-title">
+          <span>🏅 Ustalık Pasaportu: <b id="passportCount">0 / 81</b></span>
+          <span class="streak-pill" id="dailyStreakBadge">🔥 Günlük Seri: 0</span>
+        </div>
+        <div class="passport-sub" id="passportSub">Hatasız bildiğin her il pasaportuna kalıcı olarak işlenir.</div>
+        <div class="passport-bar"><div class="passport-fill" id="passportFill" style="width:0%"></div></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button type="button" id="openAtlasQuickBtn" class="btn-ghost btn-sm">📖 Atlas & Pasaport</button>
+        <button type="button" id="openBuilderBtn" class="btn-ghost btn-sm">📝 Özel Test / Kod</button>
+      </div>
+    </div>
+
+    <div class="setup-group">
+      <div class="setup-title">1. Oyun Modu</div>
+      <div class="pill-row" id="modePills">
+        <button type="button" class="pill active" data-mode="type">✍️ İsim & Plaka</button>
+        <button type="button" class="pill" data-mode="click">🖱️ Haritada Tıkla</button>
+        <button type="button" class="pill" data-mode="blind">🎯 Kör Harita</button>
+        <button type="button" class="pill" data-mode="route">🛣️ A'dan B'ye Rota</button>
+        <button type="button" class="pill" data-mode="detective">🕵️ Dedektif</button>
+        <button type="button" class="pill" data-mode="heritage">🏛️ Kültür & Miras</button>
+        <button type="button" class="pill" data-mode="neighbors">🧩 Komşu İller</button>
+        <button type="button" class="pill" data-mode="daily">📅 Günün Turu</button>
+        <button type="button" class="pill" data-mode="duel">⚔️ 2 Kişilik Düello</button>
+        <button type="button" class="pill" data-mode="atlas">📖 Serbest Atlas</button>
+      </div>
+
+      <div id="duelSetupBox" class="duel-inputs hidden">
+        <div>
+          <label for="p1NameInput">1. Oyuncu Adı</label>
+          <input id="p1NameInput" placeholder="1. Oyuncu" maxlength="16" value="1. Oyuncu">
+        </div>
+        <div>
+          <label for="p2NameInput">2. Oyuncu Adı</label>
+          <input id="p2NameInput" placeholder="2. Oyuncu" maxlength="16" value="2. Oyuncu">
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-group" id="ruleGroup">
+      <div class="setup-title">2. Kural & Süre</div>
+      <div class="pill-row" id="rulePills">
+        <button type="button" class="pill active" data-rule="classic">♾️ Klasik Tur</button>
+        <button type="button" class="pill" data-rule="blitz">⚡ 60 Saniye Blitz</button>
+        <button type="button" class="pill" data-rule="survival">❤️❤️❤️ 3 Can</button>
+      </div>
+    </div>
+
+    <div class="setup-group" id="regionGroup">
+      <div class="setup-title">3. Bölge Seçimi</div>
+      <div class="pill-row" id="regionPills">
+        <button type="button" class="pill reg-pill active" data-reg="ALL">🇹🇷 Tüm Türkiye (81)</button>
+        <button type="button" class="pill reg-pill" data-reg="Marmara">Marmara</button>
+        <button type="button" class="pill reg-pill" data-reg="Ege">Ege</button>
+        <button type="button" class="pill reg-pill" data-reg="Akdeniz">Akdeniz</button>
+        <button type="button" class="pill reg-pill" data-reg="İç Anadolu">İç Anadolu</button>
+        <button type="button" class="pill reg-pill" data-reg="Karadeniz">Karadeniz</button>
+        <button type="button" class="pill reg-pill" data-reg="Doğu Anadolu">Doğu Anadolu</button>
+        <button type="button" class="pill reg-pill" data-reg="Güneydoğu Anadolu">Güneydoğu Anadolu</button>
+      </div>
+    </div>
+
+    <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button type="button" id="startBtn" class="btn-primary btn-big">🚀 Başla</button>
+    </div>
+    <div style="margin-top:11px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button type="button" id="openBoardStartBtn" class="btn-ghost btn-sm">🏆 Skor Tablosu</button>
+      <button type="button" id="openBadgesStartBtn" class="btn-ghost btn-sm">🎖️ Başarım Rozetleri</button>
+    </div>
+  </div>
+
+  <!-- OYUN EKRANI -->
+  <div id="gameScreen">
+    <div class="card" id="mapBox">
+      <div class="map-toolbar">
+        <span class="map-badge" id="mapModeBadge">🗺️ Tüm Türkiye</span>
+        <div class="zoom-controls">
+          <button type="button" id="physicalToggleBtn" class="btn-ghost btn-sm" title="Akarsular ve Zirveler">🏞️ Fiziki</button>
+          <button type="button" id="passportMapToggleBtn" class="btn-ghost btn-sm hidden">🏅 Pasaport</button>
+          <button type="button" id="zoomInBtn" class="btn-ghost btn-sm" title="Yakınlaştır">➕</button>
+          <button type="button" id="zoomOutBtn" class="btn-ghost btn-sm" title="Uzaklaştır">➖</button>
+          <button type="button" id="zoomResetBtn" class="btn-ghost btn-sm">🗺️ Sıfırla</button>
+        </div>
+      </div>
+      <svg id="map" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="legend">
+        <div class="legend-dots">
+          <span><i class="lg-dot" style="background:#f43f5e"></i> Sorulan</span>
+          <span><i class="lg-dot" style="background:#22c55e"></i> Tam</span>
+          <span><i class="lg-dot" style="background:#fbbf24"></i> Yarım</span>
+          <span><i class="lg-dot" style="background:#f87171"></i> Yanlış</span>
+        </div>
+        <span>🖱️ Tekerlek / İki Parmak: Yakınlaş · Sürükle: Gez</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <!-- Düello Skorbordu -->
+      <div id="duelBar" class="duel-bar hidden">
+        <div class="duel-player turn" id="duelP1Box"><span id="duelP1Label">1. Oyuncu</span><b id="duelP1Score">0</b></div>
+        <div class="duel-player" id="duelP2Box"><span id="duelP2Label">2. Oyuncu</span><b id="duelP2Score">0</b></div>
+      </div>
+
+      <!-- Standart HUD -->
+      <div class="hud" id="standardHud">
+        <div class="chip">Soru: <b id="qNum">1/81</b></div>
+        <div class="chip">Puan: <b id="pScore">0</b></div>
+        <div class="chip">Seri: 🔥 <b id="pStreak">0</b></div>
+        <div class="chip lives hidden" id="livesChip">❤️❤️❤️</div>
+        <div class="chip timer hidden" id="timerChip">⏱️ <b id="pTimer">60s</b></div>
+      </div>
+
+      <div class="qHeader">
+        <div class="qTitle" id="qTitle">Bu hangi şehir? 🤔</div>
+        <button type="button" id="hintBtn" class="btn-ghost btn-sm">💡 İpucu</button>
+      </div>
+      <div class="qHint" id="qHint">Haritada kırmızıyla işaretlenen ili ve plakasını bul!</div>
+      <div id="hintBox" class="hint-box"></div>
+
+      <!-- MOD A: İSİM & PLAKA YAZ -->
+      <div id="typePanel">
+        <label for="nameInput">🏙️ Şehir adı</label>
+        <input id="nameInput" placeholder="örn: İstanbul" autocomplete="off">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:11px 0 5px">
+          <label for="plateInput" style="margin:0">🔢 Plaka kodu (4 sn altı +1 ⚡)</label>
+          <button type="button" id="toggleNumpadBtn" class="btn-ghost btn-sm" style="padding:2px 8px;font-size:.73rem">⌨️ Tuş Takımı</button>
+        </div>
+        <div class="tr-plate-wrap" id="plateWrap">
+          <div class="tr-blue">TR</div>
+          <input id="plateInput" placeholder="34" inputmode="numeric" maxlength="2" autocomplete="off">
+        </div>
+        <div id="mobileNumpad" class="numpad-grid hidden">
+          <button type="button" class="numpad-btn" data-key="1">1</button>
+          <button type="button" class="numpad-btn" data-key="2">2</button>
+          <button type="button" class="numpad-btn" data-key="3">3</button>
+          <button type="button" class="numpad-btn" data-key="4">4</button>
+          <button type="button" class="numpad-btn" data-key="5">5</button>
+          <button type="button" class="numpad-btn" data-key="6">6</button>
+          <button type="button" class="numpad-btn" data-key="7">7</button>
+          <button type="button" class="numpad-btn" data-key="8">8</button>
+          <button type="button" class="numpad-btn" data-key="9">9</button>
+          <button type="button" class="numpad-btn" data-key="0">0</button>
+          <button type="button" class="numpad-btn" data-key="DEL">⌫</button>
+          <button type="button" class="numpad-btn" style="background:rgba(245,158,11,.25);color:#fbbf24" data-key="OK">✅</button>
+        </div>
+      </div>
+
+      <!-- MOD B: HARİTADA TIKLA & KÖR HARİTA -->
+      <div id="clickPanel" class="hidden">
+        <div class="target-plate-card">
+          <div class="tr-blue">TR</div>
+          <div class="target-plate-body">
+            <span class="target-plate-code" id="targetPlateText">34</span>
+            <span id="targetCityText">İSTANBUL</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOD C: A'DAN B'YE ROTA ÇİZME -->
+      <div id="routePanel" class="hidden">
+        <div class="route-header-box">
+          <div class="route-endpoint">
+            <small>🔵 Başlangıç</small>
+            <b id="routeStartName">Edirne (22)</b>
+          </div>
+          <div style="font-size:1.3rem;color:#fbbf24">➔</div>
+          <div class="route-endpoint">
+            <small>🟡 Hedef</small>
+            <b id="routeEndName">Ankara (06)</b>
+          </div>
+        </div>
+        <div style="font-size:.82rem;color:#cbd5e1;font-weight:700" id="routeStepCounter">Adım: 0 · En kısa yol: ? adım</div>
+        <div class="route-chain" id="routeChain"></div>
+      </div>
+
+      <!-- MOD D: DEDEKTİF (KADEMELİ İPUCU) -->
+      <div id="detectivePanel" class="hidden">
+        <div class="clue-list" id="detectiveClueList"></div>
+        <label for="detectiveInput">🕵️ Bu hangi il?</label>
+        <input id="detectiveInput" placeholder="Şehir adını tahmin et..." autocomplete="off">
+      </div>
+
+      <!-- MOD E: KÜLTÜR, YEMEK & MİRAS -->
+      <div id="heritagePanel" class="hidden">
+        <div class="heritage-card">
+          <div class="heritage-tag" id="heritageCategory">🏛️ Tarihi Miras</div>
+          <div class="heritage-title" id="heritageTitle">Göbeklitepe</div>
+          <div class="heritage-desc" id="heritageDesc">Açıklama...</div>
+        </div>
+      </div>
+
+      <!-- MOD F: KOMŞU İLLERİ BUL -->
+      <div id="neighborsPanel" class="hidden">
+        <div class="target-plate-card" style="margin-bottom:8px">
+          <div class="tr-blue">TR</div>
+          <div class="target-plate-body">
+            <span class="target-plate-code" id="nbCenterPlate">06</span>
+            <span id="nbCenterName">ANKARA</span>
+          </div>
+        </div>
+        <div style="font-size:.84rem;color:#cbd5e1;font-weight:700" id="nbProgressText">Bulunan komşular: 0 / 7</div>
+        <div class="neighbor-slots" id="neighborSlots"></div>
+      </div>
+
+      <!-- MOD G: SERBEST ATLAS -->
+      <div id="atlasPanel" class="hidden">
+        <div class="atlas-card" id="atlasInfoBox">
+          <div style="color:#94a3b8;font-size:.9rem">Haritada herhangi bir ile tıklayarak plakasını, bölgesini, komşu illerini ve kısa bilgisini inceleyebilirsin.</div>
+        </div>
+      </div>
+
+      <div class="btns" id="gameBtns">
+        <button type="button" id="submitBtn" class="btn-primary">✅ Cevapla</button>
+        <button type="button" id="undoRouteBtn" class="btn-ghost hidden">↩️ Adımı Geri Al</button>
+        <button type="button" id="revealRouteBtn" class="btn-ghost hidden">👀 En Kısa Yolu Göster</button>
+        <button type="button" id="revealNbBtn" class="btn-ghost hidden">👀 Komşuları Göster</button>
+        <button type="button" id="nextBtn" class="btn-ghost hidden">Sonraki Soru ➡</button>
+        <button type="button" id="endBtn" class="btn-ghost">🏁 Oyunu Bitir</button>
+      </div>
+
+      <div id="feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BİTİR MODALI -->
+<div class="overlay" id="endModal">
+  <div class="card modal">
+    <h2 id="endModalTitle">🏁 Oyun Bitti!</h2>
+    <div id="endScoreLabel">Toplam puanın:</div>
+    <div class="finalScore" id="finalScore">0 / 162</div>
+    <div class="finalStats" id="finalStats"></div>
+
+    <!-- Gelen Meydan Okuma Karşılaştırma Kutusu -->
+    <div id="challengeCompareBox" class="daily-share-box hidden" style="border-color:#4ade80">
+      <div style="font-size:.8rem;color:#4ade80;font-weight:800;text-transform:uppercase">⚔️ Meydan Okuma Karşılaştırması</div>
+      <div style="font-family:'Baloo 2',cursive;font-size:1.15rem;margin-top:4px" id="challengeCompareResult"></div>
+    </div>
+
+    <!-- Günlük Tur Paylaşım Kartı -->
+    <div id="dailyShareBox" class="daily-share-box hidden">
+      <div style="font-size:.8rem;color:#fbbf24;font-weight:800;text-transform:uppercase">📅 Günün Türkiye Turu Karnesi</div>
+      <div class="daily-emoji-grid" id="dailyEmojiGrid"></div>
+      <button type="button" id="copyDailyBtn" class="btn-primary btn-sm" style="width:100%">📋 Sonucu Kopyala & Paylaş</button>
+    </div>
+
+    <!-- Arkadaşa Meydan Okuma Linki Üretici -->
+    <div id="createChallengeWrap" style="margin-bottom:12px">
+      <button type="button" id="createChallengeBtn" class="btn-ghost btn-sm" style="width:100%;border-color:rgba(96,165,250,.5);color:#93c5fd">
+        🔗 Bu Turun Linkini / Kodunu Kopyala & Arkadaşına Meydan Oku
+      </button>
+    </div>
+
+    <div class="report-box" id="regionReportBox">
+      <div class="report-title">📊 Bölge Başarı Karnesi</div>
+      <div id="regionReportList"></div>
+    </div>
+
+    <div id="retryWrongWrap" class="hidden" style="margin-bottom:12px">
+      <button type="button" id="retryWrongBtn" class="btn-ghost" style="width:100%;border-color:#fbbf24;color:#fbbf24">🔁 Hatalarımı Tekrar Et</button>
+    </div>
+
+    <div id="saveScoreSection">
+      <label for="playerName">Skor tablosuna yazılacak ismin ✍️</label>
+      <input id="playerName" placeholder="Adını yaz..." maxlength="20" autocomplete="off">
+      <div style="color:#f87171;font-size:.84rem;margin-top:5px" id="nameWarn"></div>
+      <div class="btns">
+        <button type="button" id="saveScoreBtn" class="btn-primary">💾 Kaydet & Skorlar</button>
+        <button type="button" id="skipSaveBtn" class="btn-ghost">Kaydetmeden Skorlar</button>
+      </div>
+    </div>
+
+    <div id="duelEndBtns" class="btns hidden">
+      <button type="button" id="duelRestartBtn" class="btn-primary">🔄 Rövanş Oyna</button>
+      <button type="button" id="duelHomeBtn" class="btn-ghost">🏠 Ana Menü</button>
+    </div>
+  </div>
+</div>
+
+<!-- BAŞARIM ROZETLERİ MODALI -->
+<div class="overlay" id="badgesModal">
+  <div class="card modal">
+    <h2>🎖️ Başarım Rozetleri</h2>
+    <div style="font-size:.85rem;color:#94a3b8" id="badgesModalSub">Oynadıkça rozetlerin kilidini aç!</div>
+    <div class="badge-grid" id="badgeGridList"></div>
+    <div class="btns">
+      <button type="button" id="closeBadgesBtn" class="btn-primary">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ÖZEL TEST OLUŞTURUCU & KOD GİRİŞ MODALI -->
+<div class="overlay" id="builderModal">
+  <div class="card modal">
+    <h2>📝 Özel Test & Meydan Okuma Kodu</h2>
+    <div style="font-size:.84rem;color:#94a3b8;margin-bottom:10px">Arkadaşının gönderdiği kodu yapıştır veya kendi seçtiğin illerden özel sınav oluştur!</div>
+
+    <div class="report-box">
+      <div class="report-title">📥 Meydan Okuma Kodu / Linki Yapıştır</div>
+      <div style="display:flex;gap:6px">
+        <input id="pasteChallengeInput" placeholder="TR-... kodunu veya linki yapıştır" style="padding:8px 11px;font-size:.88rem">
+        <button type="button" id="loadChallengeCodeBtn" class="btn-primary btn-sm">Yükle</button>
+      </div>
+    </div>
+
+    <div class="report-box">
+      <div class="report-title">🛠️ Yeni Özel Test Oluştur</div>
+      <input id="customTestTitle" placeholder="Test adı (örn: Karadeniz Sınavı)" maxlength="28" style="padding:8px 11px;font-size:.9rem;margin-bottom:8px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+        <select id="customTestMode" style="padding:7px 10px;font-size:.84rem;flex:1">
+          <option value="type">✍️ İsim & Plaka Yaz</option>
+          <option value="click">🖱️ Haritada Tıkla</option>
+          <option value="blind">🎯 Kör Harita</option>
+          <option value="detective">🕵️ Dedektif Modu</option>
+        </select>
+        <button type="button" id="pickRandom10Btn" class="btn-ghost btn-sm">🎲 Rastgele 10 İl</button>
+        <button type="button" id="clearPickedBtn" class="btn-ghost btn-sm">Temizle</button>
+      </div>
+      <div style="font-size:.78rem;color:#fbbf24;font-weight:700" id="pickedCountLabel">Seçilen il: 0</div>
+      <div class="city-picker-grid" id="cityPickerGrid"></div>
+      <div class="btns" style="margin-top:8px">
+        <button type="button" id="playCustomTestBtn" class="btn-primary btn-sm">▶️ Hemen Oyna</button>
+        <button type="button" id="shareCustomTestBtn" class="btn-ghost btn-sm">🔗 Test Linkini & Kodunu Kopyala</button>
+      </div>
+    </div>
+
+    <div class="btns">
+      <button type="button" id="closeBuilderBtn" class="btn-ghost">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- SKOR TABLOSU -->
+<div class="overlay" id="boardModal">
+  <div class="card modal">
+    <h2>🏆 Skor Tablosu</h2>
+    <div class="board-tabs" id="boardTabs">
+      <button type="button" class="board-tab active" data-filter="ALL">Tümü</button>
+      <button type="button" class="board-tab" data-filter="Yazım">Yazım</button>
+      <button type="button" class="board-tab" data-filter="Harita">Harita</button>
+      <button type="button" class="board-tab" data-filter="Kör Harita">Kör Harita</button>
+      <button type="button" class="board-tab" data-filter="Rota">Rota</button>
+      <button type="button" class="board-tab" data-filter="Dedektif">Dedektif</button>
+      <button type="button" class="board-tab" data-filter="Miras">Miras</button>
+      <button type="button" class="board-tab" data-filter="Komşular">Komşular</button>
+      <button type="button" class="board-tab" data-filter="Blitz">Blitz</button>
+      <button type="button" class="board-tab" data-filter="3 Can">3 Can</button>
+      <button type="button" class="board-tab" data-filter="Günlük">Günlük</button>
+    </div>
+    <ol id="boardList"></ol>
+    <div class="btns">
+      <button type="button" id="restartBtn" class="btn-primary">🔄 Yeniden Oyna</button>
+      <button type="button" id="goHomeBtn" class="btn-ghost">🏠 Ana Menü</button>
+      <button type="button" id="closeBoardBtn" class="btn-ghost">Kapat</button>
+    </div>
+    <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+      <a href="#" id="exportBoardBtn" style="color:#93c5fd;font-size:.8rem">📥 Skorları dışa aktar (.txt)</a>
+      <a href="#" id="clearBoardBtn" style="color:#64748b;font-size:.8rem">Skorları temizle</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* ================= 81 İL VERİSİ ================= */
+  const CITIES = [
+    [1,"Adana",37.00,35.32,"Akdeniz","Seyhan Nehri kıyısındaki Taşköprü ve kebap kültürüyle ünlü Çukurova merkezidir."],
+    [2,"Adıyaman",37.76,38.28,"Güneydoğu Anadolu","Güneşin doğuşu ve batışıyla ünlü Nemrut Dağı heykellerine ev sahipliği yapar."],
+    [3,"Afyonkarahisar",38.76,30.54,"Ege","Termal kaplıcaları, mermeri ve haşhaşlı lezzetleriyle Ege'nin iç kavşağıdır."],
+    [4,"Ağrı",39.72,43.05,"Doğu Anadolu","5.137 metre yüksekliğiyle Türkiye'nin en yüksek zirvesi Ağrı Dağı buradadır."],
+    [5,"Amasya",40.65,35.83,"Karadeniz","Yeşilırmak vadisine yaslanan yalıboyu evleri ve şehzadeler şehri kimliğiyle bilinir."],
+    [6,"Ankara",39.93,32.86,"İç Anadolu","Türkiye Cumhuriyeti'nin başkenti ve Anıtkabir'in bulunduğu İç Anadolu merkezidir."],
+    [7,"Antalya",36.89,30.70,"Akdeniz","Türkiye turizminin başkenti; falezleri, antik kentleri ve uzun sahilleriyle tanınır."],
+    [8,"Artvin",41.18,41.82,"Karadeniz","Kaçkar Dağları eteklerindeki yaylaları, Karagöl'ü ve derin vadileriyle ünlüdür."],
+    [9,"Aydın",37.85,27.85,"Ege","Efes ve Milet'e komşu, incir ve zeytin üretimiyle öne çıkan Ege ilidir."],
+    [10,"Balıkesir",39.65,27.88,"Marmara","Hem Marmara hem Ege Denizi'ne kıyısı bulunan, Kazdağları ve Ayvalık'la bilinen ildir."],
+    [11,"Bilecik",40.15,29.98,"Marmara","Osmanlı Beyliği'nin kurulduğu Söğüt ilçesini sınırlarında barındırır."],
+    [12,"Bingöl",38.88,40.50,"Doğu Anadolu","Yüzen Adalar Tabiat Anıtı ve yüksek dağ gölleriyle tanınan Doğu Anadolu ilidir."],
+    [13,"Bitlis",38.40,42.11,"Doğu Anadolu","Dünyanın en büyük krater göllerinden biri olan Nemrut Kalderası buradadır."],
+    [14,"Bolu",40.74,31.61,"Karadeniz","Abant ve Yedigöller Milli Parkı gibi doğa harikalarıyla ünlü Batı Karadeniz ilidir."],
+    [15,"Burdur",37.72,30.29,"Akdeniz","Göller Yöresi'nde yer alır; turkuaz rengiyle bilinen Salda Gölü sınırlarındadır."],
+    [16,"Bursa",40.19,29.06,"Marmara","Osmanlı'nın ilk başkenti; Uludağ kış turizmi ve ipek dokumacılığıyla tanınır."],
+    [17,"Çanakkale",40.15,26.41,"Marmara","Hem Avrupa hem Asya'da toprağı olan, Troya Antik Kenti ve Gelibolu'ya ev sahipliği yapan ildir."],
+    [18,"Çankırı",40.60,33.62,"Karadeniz","Kaya tuzu mağaraları ve Ilgaz Dağı eteklerindeki doğasıyla bilinir."],
+    [19,"Çorum",40.55,34.95,"Karadeniz","Hitit İmparatorluğu'nun başkenti Hattuşa ve kavrulmuş leblebisiyle meşhurdur."],
+    [20,"Denizli",37.77,29.09,"Ege","Beyaz travertenleriyle UNESCO listesindeki Pamukkale ve Hierapolis buradadır."],
+    [21,"Diyarbakır",37.91,40.24,"Güneydoğu Anadolu","Dicle Nehri kıyısındaki tarihi surları, Hevsel Bahçeleri ve On Gözlü Köprü ile tanınır."],
+    [22,"Edirne",41.68,26.56,"Marmara","Mimar Sinan'ın ustalık eseri Selimiye Camii ve Kırkpınar yağlı güreşleriyle ünlüdür."],
+    [23,"Elazığ",38.68,39.22,"Doğu Anadolu","Harput Kalesi, Hazar Gölü ve Keban Barajı ile bilinen Yukarı Fırat ilidir."],
+    [24,"Erzincan",39.75,39.49,"Doğu Anadolu","Kemaliye Karanlık Kanyon ve tulum peyniriyle tanınan Fırat vadisi şehridir."],
+    [25,"Erzurum",39.90,41.27,"Doğu Anadolu","Palandöken Kayak Merkezi, Çifte Minareli Medrese ve cağ kebabıyla ünlüdür."],
+    [26,"Eskişehir",39.78,30.52,"İç Anadolu","Porsuk Çayı, Odunpazarı tarihi evleri ve canlı üniversite kültürüyle öne çıkar."],
+    [27,"Gaziantep",37.07,37.38,"Güneydoğu Anadolu","UNESCO gastronomi şehri; Zeugma Mozaik Müzesi ve baklavasıyla dünyaca tanınır."],
+    [28,"Giresun",40.91,38.39,"Karadeniz","Kirazın anavatanı kabul edilir ve Karadeniz'deki tek yaşanabilir adaya (Giresun Adası) sahiptir."],
+    [29,"Gümüşhane",40.46,39.48,"Karadeniz","Karaca Mağarası, Zigana Geçidi ve pestil-köme üretimiyle bilinen Karadeniz ilidir."],
+    [30,"Hakkari",37.58,43.74,"Doğu Anadolu","Türkiye'nin en güneydoğu ucunda yer alır; Cilo Dağları ve buzullarıyla tanınır."],
+    [31,"Hatay",36.20,36.16,"Akdeniz","Farklı kültürlerin bir arada yaşadığı, zengin mutfağı ve Titus Tüneli ile ünlü sınır ilidir."],
+    [32,"Isparta",37.76,30.55,"Akdeniz","Türkiye'nin gül ve lavanta bahçeleri merkezi; Eğirdir Gölü'ne komşudur."],
+    [33,"Mersin",36.80,34.63,"Akdeniz","Kızkalesi, geniş limanı, tantunisi ve uzun Akdeniz kıyı şeridiyle öne çıkar."],
+    [34,"İstanbul",41.01,28.98,"Marmara","Asya ve Avrupa kıtalarını Boğaziçi ile birleştiren Türkiye'nin en kalabalık metropolüdür."],
+    [35,"İzmir",38.42,27.14,"Ege","Saat Kulesi, Kordon boyu ve Efes ile Bergama antik kentleriyle Ege'nin incisidir."],
+    [36,"Kars",40.60,43.09,"Doğu Anadolu","Ani Harabeleri, Çıldır Gölü ve Baltık mimarisi taş binalarıyla ünlüdür."],
+    [37,"Kastamonu",41.39,33.78,"Karadeniz","Ilgaz Dağı, Valla Kanyonu ve ahşap konaklarıyla bilinen köklü Batı Karadeniz ilidir."],
+    [38,"Kayseri",38.73,35.49,"İç Anadolu","Erciyes Dağı eteklerinde kurulu; pastırması, mantısı ve Selçuklu eserleriyle tanınır."],
+    [39,"Kırklareli",41.73,27.22,"Marmara","İğneada Longoz Ormanları ve Dupnisa Mağarası'na ev sahipliği yapan Trakya ilidir."],
+    [40,"Kırşehir",39.15,34.16,"İç Anadolu","Ahi Evran ve Neşet Ertaş'ın memleketi; Seyfe Gölü kuş cennetiyle bilinir."],
+    [41,"Kocaeli",40.85,29.88,"Marmara","İzmit Körfezi çevresinde kurulu, Türkiye'nin en önemli sanayi ve geçiş merkezlerinden biridir."],
+    [42,"Konya",37.87,32.49,"İç Anadolu","Yüzölçümü bakımından Türkiye'nin en büyük ilidir; Mevlana Müzesi ve Çatalhöyük buradadır."],
+    [43,"Kütahya",39.42,29.98,"Ege","Geleneksel çini sanatı, Aizanoi Antik Kenti ve termal kaynaklarıyla tanınır."],
+    [44,"Malatya",38.35,38.31,"Doğu Anadolu","Dünya kayısı üretiminin merkezi ve UNESCO listesindeki Arslantepe Höyüğü buradadır."],
+    [45,"Manisa",38.62,27.43,"Ege","Spil Dağı, Mesir Macunu festivali ve üzüm bağlarıyla ünlü Ege ilidir."],
+    [46,"Kahramanmaraş",37.58,36.93,"Akdeniz","Dövme dondurması, kırmızı biberi ve Kurtuluş Savaşı'ndaki direnişiyle ünlüdür."],
+    [47,"Mardin",37.31,40.74,"Güneydoğu Anadolu","Mezopotamya ovasına bakan taş evleri, manastırları ve telkari sanatıyla ünlüdür."],
+    [48,"Muğla",37.22,28.36,"Ege","Bodrum, Marmaris, Fethiye ve Datça gibi koylarıyla en uzun kıyı şeridine sahip ilimizdir."],
+    [49,"Muş",38.73,41.49,"Doğu Anadolu","Tarihi Murat Köprüsü, geniş Muş Ovası ve baharda açan Muş laleleriyle bilinir."],
+    [50,"Nevşehir",38.62,34.71,"İç Anadolu","Peri bacaları, yeraltı şehirleri ve sıcak hava balonlarıyla Kapadokya'nın kalbidir."],
+    [51,"Niğde",37.97,34.68,"İç Anadolu","Aladağlar Milli Parkı zirveleri ve Gümüşler Manastırı ile tanınan Kapadokya kapısıdır."],
+    [52,"Ordu",40.92,37.88,"Karadeniz","Boztepe teleferiği, Perşembe Yaylası menderesleri ve fındık üretimiyle öne çıkar."],
+    [53,"Rize",41.02,40.52,"Karadeniz","Türkiye'nin en çok yağış alan ili; çay bahçeleri ve Ayder Yaylası ile ünlüdür."],
+    [54,"Sakarya",40.78,30.40,"Marmara","Sapanca Gölü, Sakarya Nehri ve ıslama köftesiyle bilinen Marmara ilidir."],
+    [55,"Samsun",41.29,36.33,"Karadeniz","19 Mayıs 1919'da Milli Mücadele'nin başladığı, Kızılırmak Deltası'na sahip Karadeniz merkezidir."],
+    [56,"Siirt",37.94,41.94,"Güneydoğu Anadolu","Botan Vadisi, Tillo Ulu Camii ışık hadisesi ve fıstığıyla tanınır."],
+    [57,"Sinop",42.03,35.15,"Karadeniz","İnceburun ile Türkiye'nin en kuzey noktasını barındıran doğal liman şehridir."],
+    [58,"Sivas",39.75,37.02,"İç Anadolu","Sivas Kongresi'ne ev sahipliği yapmış, Divriği Ulu Camii ve Kangal köpeğiyle ünlü ildir."],
+    [59,"Tekirdağ",40.98,27.51,"Marmara","Marmara kıyısında yer alır; Tekirdağ köftesi ve Şarköy bağlarıyla bilinir."],
+    [60,"Tokat",40.31,36.55,"Karadeniz","Ballıca Mağarası, yazmacılık sanatı ve yaprağıyla ünlü Orta Karadeniz ilidir."],
+    [61,"Trabzon",41.00,39.72,"Karadeniz","Sümela Manastırı, Uzungöl ve köklü Karadeniz kültürüyle öne çıkan liman kentidir."],
+    [62,"Tunceli",39.11,39.55,"Doğu Anadolu","Munzur Vadisi Milli Parkı, Ovacık gözeleri ve sarp dağ doğasıyla tanınır."],
+    [63,"Şanlıurfa",37.16,38.79,"Güneydoğu Anadolu","Tarihin sıfır noktası Göbeklitepe ve Balıklıgöl'e ev sahipliği yapar."],
+    [64,"Uşak",38.67,29.41,"Ege","Ulubey Kanyonu ve Karun Hazineleri ile tanınan İç Batı Anadolu ilidir."],
+    [65,"Van",38.49,43.38,"Doğu Anadolu","Türkiye'nin en büyük gölü olan Van Gölü, Akdamar Adası ve Van kedisiyle ünlüdür."],
+    [66,"Yozgat",39.82,34.80,"İç Anadolu","Türkiye'nin ilk milli parkı Çamlık Milli Parkı ve testi kebabıyla bilinir."],
+    [67,"Zonguldak",41.45,31.79,"Karadeniz","Türkiye'nin taş kömürü havzası ve Gökgöl Mağarası ile bilinen Batı Karadeniz ilidir."],
+    [68,"Aksaray",38.37,34.03,"İç Anadolu","Ihlara Vadisi, Hasan Dağı ve Tuz Gölü kıyısıyla Kapadokya'nın batı kapısıdır."],
+    [69,"Bayburt",40.26,40.22,"Karadeniz","Çoruh Nehri kıyısındaki Bayburt Kalesi ve Baksı Müzesi ile tanınır."],
+    [70,"Karaman",37.18,33.22,"İç Anadolu","Karamanoğlu Mehmet Bey'in Türkçeyi resmi dil ilan ettiği Toros eteklerindeki ildir."],
+    [71,"Kırıkkale",39.85,33.52,"İç Anadolu","Kızılırmak kıyısında yer alan, savunma sanayii ve İç Anadolu ulaşım kavşağı olan ildir."],
+    [72,"Batman",37.88,41.13,"Güneydoğu Anadolu","Dicle kıyısındaki tarihi Hasankeyf antik yerleşimi sınırları içindedir."],
+    [73,"Şırnak",37.52,42.46,"Güneydoğu Anadolu","Cudi ve Gabar dağları arasında, Irak ve Suriye sınırında yer alan Güneydoğu ilidir."],
+    [74,"Bartın",41.64,32.34,"Karadeniz","Amasra yarımadası, İnkumu plajı ve Bartın Çayı ile bilinen Batı Karadeniz ilidir."],
+    [75,"Ardahan",41.11,42.70,"Doğu Anadolu","Gürcistan sınırında yer alır; Çıldır Gölü'nün kuzey kıyısı ve yaylalarıyla bilinir."],
+    [76,"Iğdır",39.92,44.04,"Doğu Anadolu","Üç ülkeye (Ermenistan, Nahçıvan/Azerbaycan, İran) sınırı olan tek ilimizdir."],
+    [77,"Yalova",40.65,29.28,"Marmara","Marmara Denizi kıyısında, termal kaplıcaları ve yürüyen köşküyle bilinen küçük ilimizdir."],
+    [78,"Karabük",41.20,32.62,"Karadeniz","UNESCO Dünya Mirası listesindeki tarihi Safranbolu evleriyle dünyaca ünlüdür."],
+    [79,"Kilis",36.72,37.12,"Güneydoğu Anadolu","Suriye sınırında yer alır; zeytinyağı ve Kilis tavasıyla tanınan sınır ilimizdir."],
+    [80,"Osmaniye",37.07,36.25,"Akdeniz","Karatepe-Aslantaş Açık Hava Müzesi ve yer fıstığı üretimiyle ünlü Çukurova ilidir."],
+    [81,"Düzce",40.84,31.16,"Karadeniz","1999 yılında 81. il statüsü kazanmıştır; şelaleleri ve Akçakoca sahiliyle tanınır."]
+  ];
+
+  // Kültür, Yemek & Miras Kartları [plaka, kategori, başlık, ipucu/açıklama]
+  const HERITAGE_CARDS = [
+    [63,"🏛️ Tarihi Miras","Göbeklitepe & Balıklıgöl","12.000 yıllık geçmişiyle insanlık tarihinin bilinen en eski tapınak kompleksine ev sahipliği yapar."],
+    [61,"🏛️ Tarihi Miras","Sümela Manastırı & Uzungöl","Karadağ'ın sarp kayalıklarına oyulmuş tarihi manastırı ve doğa harikası gölüyle ünlüdür."],
+    [20,"🏞️ Doğa Harikası","Pamukkale Travertenleri","Şifalı termal suların oluşturduğu bembeyaz kalsiyum terasları ve Hierapolis antik kenti buradadır."],
+    [2,"🏛️ Tarihi Miras","Nemrut Dağı Dev Heykelleri","Kommagene Krallığı'ndan kalma 2.150 metre yükseklikteki dev tanrı heykelleriyle bilinir."],
+    [22,"🏛️ Tarihi Miras","Selimiye Camii & Kırkpınar","Mimar Sinan'ın 'ustalık eserim' dediği cami ve tarihi yağlı güreş festivali bu sınır ilindedir."],
+    [78,"🏛️ Tarihi Miras","Safranbolu Tarihi Evleri","Osmanlı sivil mimarisini koruyan ahşap konakları ve safran üretimiyle UNESCO listesindedir."],
+    [36,"🏛️ Tarihi Miras","Ani Harabeleri & Çıldır Gölü","Kışın yüzeyi tamamen buz tutan gölü ve İpek Yolu üzerindeki Orta Çağ kenti kalıntılarıyla ünlüdür."],
+    [72,"🏛️ Tarihi Miras","Hasankeyf Antik Kenti","Dicle Nehri kıyısında binlerce yıllık mağara yerleşimleri ve tarihi köprü kalıntılarıyla tanınır."],
+    [58,"🏛️ Tarihi Miras","Divriği Ulu Camii & Darüşşifası","Taş işçiliğindeki eşsiz kabartmalarıyla UNESCO Dünya Mirası listesine giren ilk Anadolu eseridir."],
+    [15,"🏞️ Doğa Harikası","Salda Gölü","Mars yüzeyindeki Jezero Krateri'ne benzer mineral yapısıyla 'Türkiye'nin Maldivleri' olarak anılır."],
+    [27,"🍽️ Gastronomi & Miras","Zeugma Mozaikleri & Baklava","Çingene Kızı mozaiği ve UNESCO tescilli zengin mutfak kültürüyle dünyaca ünlüdür."],
+    [19,"🏛️ Tarihi Miras","Hattuşa Antik Kenti & Leblebi","Hitit İmparatorluğu'nun başkenti olan antik kent ve kavrulmuş nohut geleneği buradadır."],
+    [4,"🏛️ Tarihi Miras","İshak Paşa Sarayı & Ağrı Dağı","Osmanlı'nın doğudaki en görkemli saray külliyesi ve Türkiye'nin en yüksek zirvesi buradadır."],
+    [17,"🏛️ Tarihi Miras","Troya Antik Kenti & Gelibolu","Homeros'un İlyada destanına konu olan antik kent ve Çanakkale Boğazı bu ilimizdedir."],
+    [68,"🏞️ Doğa Harikası","Ihlara Vadisi & Hasan Dağı","Melendiz Çayı'nın oyduğu kaya kiliseleriyle dolu kanyon ve Tuz Gölü kıyısı buradadır."],
+    [25,"🍽️ Gastronomi & Kış","Palandöken & Cağ Kebabı","Türkiye'nin en uzun kayak pistlerine ve yatık şişte pişen meşhur kebaba ev sahipliği yapar."],
+    [60,"🏞️ Doğa Harikası","Ballıca Mağarası & Yaprak","Soğan sarkıtlarıyla dünyaca ünlü mağarası ve asma yaprağıyla tanınan Karadeniz ilidir."],
+    [65,"🏞️ Doğa & Miras","Akdamar Adası & Van Gölü","Türkiye'nin en büyük gölü ortasındaki tarihi kilise adası ve inci kefali göçüyle bilinir."],
+    [33,"🍽️ Gastronomi & Miras","Kızkalesi & Tantuni","Deniz ortasındaki tarihi adacık kalesi ve ince doğranmış et dürümüyle ünlü Akdeniz ilidir."],
+    [50,"🏞️ Doğa Harikası","Peri Bacaları & Yeraltı Şehirleri","Volkanik tüf kayaların rüzgarla şekillendiği Kapadokya balon turlarının merkezidir."],
+    [35,"🏛️ Tarihi Miras","Efes Antik Kenti & Saat Kulesi","Artemis Tapınağı, Celsus Kütüphanesi ve Kordon boyuyla Ege'nin simge kentidir."],
+    [42,"🏛️ Tarihi Miras","Mevlana Müzesi & Çatalhöyük","Hoşgörü felsefesinin simgesi dergah ve Neolitik çağın en büyük yerleşimlerinden biri buradadır."],
+    [16,"🍽️ Gastronomi & Kış","Uludağ & İskender Kebap","Kış sporlarının gözde merkezi ve tereyağlı döner kebabıyla ünlü ilk Osmanlı başkentidir."],
+    [53,"🏞️ Doğa & Tarım","Ayder Yaylası & Çay Bahçeleri","Zümrüt yeşili yaylaları, Fırtına Deresi ve Türkiye'nin çay üretim merkezi olmasıyla bilinir."],
+    [44,"🍽️ Tarım & Miras","Arslantepe Höyüğü & Kayısı","Dünya kuru kayısı üretiminin büyük bölümünü karşılayan ve UNESCO listesindeki höyüğe sahip ildir."],
+    [47,"🏛️ Tarihi Miras","Taş Evler & Telkari Sanatı","Mezopotamya ovasına bakan sarı kalker taşından konakları ve gümüş işlemeciliğiyle ünlüdür."],
+    [14,"🏞️ Doğa Harikası","Abant & Yedigöller Milli Parkı","Sonbaharda renk cümbüşüne bürünen heyelan gölleri ve çam ormanlarıyla ünlüdür."],
+    [57,"🏞️ Coğrafi Uç","İnceburun & Hamsilos Fiyordu","Türkiye'nin en kuzey ucu ve Karadeniz'in tek doğal liman koyuna ev sahipliği yapar."],
+    [64,"🏞️ Doğa & Miras","Ulubey Kanyonu & Karun Hazineleri","Dünyanın en uzun ikinci kanyon sistemi ve Lidya dönemine ait eşsiz hazineler buradadır."],
+    [46,"🍽️ Gastronomi","Dövme Dondurma & Kırmızı Biber","Keçi sütü ve saleple dövülerek yapılan dünyaca ünlü dondurmasıyla tanınan Akdeniz ilidir."]
+  ];
+
+  // 81 ilin kara komşuluk haritası
+  const NEIGHBORS = {
+    1:[31,33,38,46,51,80], 2:[21,27,44,46,63], 3:[15,20,26,32,42,43,64], 4:[13,25,36,49,65,76],
+    5:[19,55,60,66], 6:[14,18,26,40,42,68,71], 7:[15,32,33,42,48,70], 8:[25,53,75],
+    9:[20,35,45,48], 10:[16,17,35,43,45], 11:[14,16,26,43,54], 12:[21,23,24,25,49,62],
+    13:[4,49,56,65,72], 14:[6,11,18,26,54,67,78,81], 15:[3,7,20,32,48], 16:[10,11,41,43,54,77],
+    17:[10,22,59], 18:[6,14,19,37,71,78], 19:[5,18,37,55,57,66,71], 20:[3,9,15,45,48,64],
+    21:[2,12,23,44,47,49,63,72], 22:[17,39,59], 23:[12,21,24,44,62], 24:[12,23,25,28,29,44,58,62,69],
+    25:[4,8,12,24,36,49,53,61,69,75], 26:[3,6,11,14,42,43], 27:[2,31,46,63,79,80], 28:[24,29,52,58,61],
+    29:[24,28,61,69], 30:[65,73], 31:[1,27,80], 32:[3,7,15,42],
+    33:[1,7,42,51,70], 34:[39,41,59], 35:[9,10,45], 36:[4,25,75,76],
+    37:[18,19,57,74,78], 38:[1,46,50,51,58,66], 39:[22,34,59], 40:[6,50,66,68,71],
+    41:[16,34,54,77], 42:[3,6,7,26,32,33,51,68,70], 43:[3,10,11,16,26,45,64], 44:[2,21,23,24,46,58],
+    45:[9,10,20,35,43,64], 46:[1,2,27,38,44,58,80], 47:[21,56,63,72,73], 48:[7,9,15,20],
+    49:[4,12,13,21,25,72], 50:[38,40,51,66,68], 51:[1,33,38,42,50,68], 52:[28,55,58,60],
+    53:[8,25,61,69], 54:[11,14,16,41,81], 55:[5,19,52,57,60], 56:[13,47,65,72,73],
+    57:[19,37,55], 58:[24,28,38,44,46,52,60,66], 59:[17,22,34,39], 60:[5,52,55,58,66],
+    61:[25,28,29,53,69], 62:[12,23,24], 63:[2,21,27,47], 64:[3,20,43,45],
+    65:[4,13,30,56,73], 66:[5,19,38,40,50,58,60,71], 67:[14,74,78,81], 68:[6,40,42,50,51],
+    69:[24,25,29,53,61], 70:[7,33,42], 71:[6,18,19,40,66], 72:[13,21,47,49,56],
+    73:[30,47,56,65], 74:[37,67,78], 75:[8,25,36], 76:[4,36],
+    77:[16,41], 78:[14,18,37,67,74], 79:[27], 80:[1,27,31,46], 81:[14,54,67]
+  };
+
+  // Fiziki Coğrafya: Başlıca Akarsular ve Zirveler
+  const RIVERS = [
+    { name:"Kızılırmak", pts:[[37.8,39.8],[36.8,39.6],[35.6,39.1],[34.7,38.8],[33.9,39.1],[33.5,39.8],[33.8,40.5],[34.8,41.1],[35.9,41.65]] },
+    { name:"Fırat", pts:[[41.2,40.1],[39.6,39.7],[38.8,39.1],[38.7,38.4],[38.2,37.7],[38.0,36.9]] },
+    { name:"Dicle", pts:[[39.4,38.4],[40.2,37.9],[41.1,37.8],[41.9,37.5],[42.3,37.2]] },
+    { name:"Sakarya", pts:[[31.1,39.4],[31.7,39.9],[30.8,40.1],[30.3,40.5],[30.65,41.1]] },
+    { name:"Yeşilırmak", pts:[[37.6,40.2],[36.5,40.3],[35.8,40.65],[36.6,41.35]] },
+    { name:"B. Menderes", pts:[[29.9,38.2],[29.0,37.9],[28.1,37.8],[27.25,37.55]] },
+    { name:"Seyhan", pts:[[36.0,38.1],[35.5,37.5],[35.3,36.8]] }
+  ];
+
+  const PEAKS = [
+    { name:"Ağrı (5137m)", lon:44.29, lat:39.70 },
+    { name:"Cilo (4135m)", lon:44.00, lat:37.49 },
+    { name:"Süphan (4058m)", lon:42.83, lat:38.93 },
+    { name:"Kaçkar (3937m)", lon:41.16, lat:40.83 },
+    { name:"Erciyes (3917m)", lon:35.45, lat:38.53 },
+    { name:"Aladağlar (3756m)", lon:35.15, lat:37.82 },
+    { name:"Uludağ (2543m)", lon:29.22, lat:40.07 }
+  ];
+
+  const BADGE_DEFS = [
+    { id:"first_step", ico:"🌱", name:"İlk Adım", desc:"İlk sorunu hatasız doğru bil." },
+    { id:"streak_5", ico:"🔥", name:"Seri Ustası", desc:"5 soruyu arka arkaya hatasız bil." },
+    { id:"streak_15", ico:"⚡", name:"Durdurulamaz", desc:"15 soruyu arka arkaya hatasız bil." },
+    { id:"speed_demon", ico:"🚀", name:"Şimşek Hızı", desc:"3 saniyenin altında tam puan al." },
+    { id:"sniper_blind", ico:"🎯", name:"Keskin Nişancı", desc:"Kör Harita'da 25 km altı isabet yap." },
+    { id:"route_master", ico:"🛣️", name:"Usta Kılavuz", desc:"A'dan B'ye en kısa rotayı kur." },
+    { id:"detective_ace", ico:"🕵️", name:"Baş Dedektif", desc:"Dedektif modunda hiç ek ipucu açmadan bil." },
+    { id:"border_guard", ico:"🛡️", name:"Sınır Bekçisi", desc:"Kara sınırı olan 14 ilde ustalaş." },
+    { id:"marmara_master", ico:"🌉", name:"Marmara Fatihi", desc:"Marmara'nın 11 ilinde ustalaş." },
+    { id:"ege_master", ico:"🫒", name:"Ege Efesi", desc:"Ege'nin 8 ilinde ustalaş." },
+    { id:"akdeniz_master", ico:"☀️", name:"Akdeniz Kaptanı", desc:"Akdeniz'in 8 ilinde ustalaş." },
+    { id:"icanadolu_master", ico:"🌾", name:"Bozkır Bilgesi", desc:"İç Anadolu'nun 13 ilinde ustalaş." },
+    { id:"karadeniz_master", ico:"🌲", name:"Karadeniz Gezgini", desc:"Karadeniz'in 18 ilinde ustalaş." },
+    { id:"all_81", ico:"👑", name:"81 İl Büyük Ustası", desc:"81 ilin tamamını pasaportuna işle." }
+  ];
+
+  const BORDER_PROVINCES = [22,39,8,75,36,76,4,65,30,73,47,63,27,79,31];
+
+  const ALIASES = {
+    "afyon":3, "urfa":63, "antakya":31, "izmit":41, "adapazari":54,
+    "kmaras":46, "maras":46, "antep":27, "icel":33
+  };
+
+  const REGION_CLASS = {
+    "Marmara": "reg-marmara", "Ege": "reg-ege", "Akdeniz": "reg-akdeniz",
+    "İç Anadolu": "reg-icanadolu", "Karadeniz": "reg-karadeniz",
+    "Doğu Anadolu": "reg-dogu", "Güneydoğu Anadolu": "reg-guneydogu"
+  };
+
+  const SMALL_PROVINCES = new Set([77, 79, 74, 81, 78, 80, 41, 53, 61, 67, 71, 69, 34, 76]);
+
+  const BORDER = [
+    [26.35,41.73],[27.05,41.72],[27.6,41.86],[28.0,41.97],
+    [28.6,41.35],[29.25,41.25],[29.95,41.3],[30.55,41.4],[31.15,41.32],[31.65,41.5],[32.15,41.78],[32.7,41.88],
+    [33.3,41.9],[33.85,41.7],[34.3,41.55],[34.8,41.75],[35.2,42.02],[35.6,41.78],[36.0,41.55],[36.35,41.3],
+    [36.8,41.25],[37.25,41.28],[37.65,41.12],[38.05,41.0],[38.45,40.95],[38.95,41.05],[39.45,41.1],[39.95,41.1],
+    [40.45,41.1],[40.95,41.2],[41.4,41.4],
+    [41.85,41.55],[42.45,41.55],[43.0,41.45],[43.4,41.2],[43.6,40.95],
+    [43.9,40.7],[44.2,40.4],[44.5,40.1],[44.8,39.85],[44.9,39.7],
+    [44.6,39.3],[44.8,38.9],[44.5,38.5],[44.3,38.0],[44.4,37.6],[44.2,37.4],
+    [43.6,37.3],[42.9,37.3],[42.2,37.35],[41.5,37.3],[40.8,37.2],[40.1,37.1],[39.5,37.0],[38.9,36.9],
+    [38.3,36.8],[37.7,36.75],[37.1,36.65],[36.7,36.45],
+    [36.35,36.15],[36.1,36.05],[35.9,35.98],
+    [36.15,36.3],[36.2,36.55],[36.0,36.7],[35.6,36.65],[35.2,36.6],[34.85,36.68],[34.5,36.6],[34.4,36.05],
+    [34.0,36.2],[33.4,36.1],[32.8,36.22],[32.3,36.4],[31.8,36.5],[31.3,36.62],[30.8,36.88],[30.55,36.5],
+    [30.2,36.3],[29.7,36.28],[29.2,36.55],[28.6,36.8],[28.05,37.0],[27.6,37.3],[27.3,37.7],[27.35,38.0],
+    [27.1,38.45],[26.9,38.7],[26.85,39.1],[26.7,39.4],[26.5,40.0],[26.3,40.45],[26.05,40.72],
+    [26.35,41.0],[26.55,41.2],[26.4,41.45],[26.35,41.73]
+  ];
+
+  const LAKES = [
+    [[42.45,38.45],[42.7,38.75],[43.1,38.72],[43.35,38.4],[43.0,38.25],[42.6,38.3]],
+    [[33.1,38.35],[33.3,38.85],[33.55,38.5],[33.45,38.05],[33.15,38.2]]
+  ];
+
+  const MARMARA_SEA = [
+    [27.0,40.55],[27.3,40.8],[27.9,40.95],[28.5,41.0],[29.0,41.0],[29.3,40.85],
+    [29.7,40.7],[29.5,40.5],[29.0,40.45],[28.3,40.4],[27.6,40.38],[27.1,40.45]
+  ];
+
+  const proj = p => [(p[0]-25.6)*30, (42.4-p[1])*39];
+  const invProj = (x, y) => [x/30 + 25.6, 42.4 - y/39];
+  const cityPos = c => proj([c[3], c[2]]);
+  const NS = "http://www.w3.org/2000/svg";
+
+  const dotEls = [];
+  const provEls = new Array(81).fill(null);
+  let markerEl, markerQ, labelEl, provGroup, baseLandEl, marmaraEl, physicalLayerEl;
+  let distanceLineEl, wrongDotEl, routePolylineEl, optimalRoutePolylineEl;
+
+  // Ayarlar
+  let gameMode = "type"; // type | click | blind | route | detective | heritage | neighbors | daily | duel | atlas
+  let gameRule = "classic"; // classic | blitz | survival
+  let selectedRegion = "ALL";
+
+  // Oyun Durumu
+  let deck = [], idx = 0, score = 0, streak = 0, bestStreak = 0, lives = 3;
+  let answered = false, current = null, currentHeritage = null, muted = false, questionStartTime = 0;
+  let timeLeft = 60, timerInterval = null, autoNextTimeout = null;
+  let missedCities = [], regionStats = {}, dailyResults = [];
+  let targetNeighbors = [], foundNeighbors = new Set(), nbWrongClicks = 0;
+  let routeStartCode = 0, routeEndCode = 0, routePath = [], routeOptimal = [];
+  let detectiveHintsOpened = 0;
+  let duelNames = ["1. Oyuncu", "2. Oyuncu"], duelScores = [0, 0], duelTurn = 0;
+  let passportViewOn = false, physicalLayerOn = false, boardFilter = "ALL";
+  let lastSaveTime = null, memoryBoard = [], memoryPassport = [], memoryBadges = [], audioCtx = null;
+  let activeChallenge = null, customSelectedCodes = new Set();
+
+  // Pan & Pinch-Zoom State
+  let FULL_VB = [0, 0, 600, 300];
+  let currentVB = [0, 0, 600, 300];
+  let vbAnimId = null;
+  let activePointers = new Map();
+  let didDrag = false, panStartClient = {x:0, y:0}, panStartVB = [0,0,0,0], pinchStartDist = 0, pinchStartVB = [0,0,0,0];
+
+  const $ = id => document.getElementById(id);
+  const norm = s => (s||"").toLocaleLowerCase("tr")
+    .replace(/ş/g,"s").replace(/ı/g,"i").replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ö/g,"o").replace(/ç/g,"c")
+    .replace(/[^a-z0-9]/g,"");
+
+  function levenshtein(a, b){
+    if(a === b) return 0;
+    if(!a.length) return b.length;
+    if(!b.length) return a.length;
+    const dp = Array.from({length: a.length + 1}, (_, i) => [i]);
+    for(let j = 1; j <= b.length; j++) dp[0][j] = j;
+    for(let i = 1; i <= a.length; i++){
+      for(let j = 1; j <= b.length; j++){
+        const cost = a[i-1] === b[j-1] ? 0 : 1;
+        dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + cost);
+      }
+    }
+    return dp[a.length][b.length];
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+  }
+
+  function svgEl(name, attrs, parent){
+    const e = document.createElementNS(NS, name);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    if(parent) parent.appendChild(e);
+    return e;
+  }
+
+  /* ================= KALICI DEPOLAMA, PASAPORT & ROZETLER ================= */
+  function getSavedScores(){
+    try { return JSON.parse(localStorage.getItem("trSehirOyunu_v4") || "[]"); }
+    catch(e) { return memoryBoard; }
+  }
+  function setSavedScores(list){
+    memoryBoard = list;
+    try { localStorage.setItem("trSehirOyunu_v4", JSON.stringify(list)); } catch(e) {}
+  }
+
+  function getMasteredSet(){
+    try { return new Set(JSON.parse(localStorage.getItem("trSehirPasaport_v1") || "[]")); }
+    catch(e) { return new Set(memoryPassport); }
+  }
+  function markCityMastered(plate){
+    const set = getMasteredSet();
+    if(!set.has(plate)){
+      set.add(plate);
+      const arr = [...set];
+      memoryPassport = arr;
+      try { localStorage.setItem("trSehirPasaport_v1", JSON.stringify(arr)); } catch(e) {}
+      refreshPassportBanner();
+      checkAllBadges(null);
+    }
+  }
+
+  function getUnlockedBadges(){
+    try { return new Set(JSON.parse(localStorage.getItem("trSehirRozetler_v1") || "[]")); }
+    catch(e) { return new Set(memoryBadges); }
+  }
+
+  function unlockBadge(id){
+    const set = getUnlockedBadges();
+    if(set.has(id)) return;
+    set.add(id);
+    const arr = [...set];
+    memoryBadges = arr;
+    try { localStorage.setItem("trSehirRozetler_v1", JSON.stringify(arr)); } catch(e) {}
+    $("badgeCountHeader").textContent = `${arr.length}/${BADGE_DEFS.length}`;
+
+    const def = BADGE_DEFS.find(b => b.id === id);
+    if(def){
+      $("toastIco").textContent = def.ico;
+      $("toastTitle").textContent = def.name;
+      const t = $("badgeToast");
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 3200);
+    }
+  }
+
+  function checkAllBadges(ctx){
+    const mastered = getMasteredSet();
+    if(mastered.size >= 1) unlockBadge("first_step");
+    if(streak >= 5) unlockBadge("streak_5");
+    if(streak >= 15) unlockBadge("streak_15");
+    if(ctx && ctx.speedUnder3) unlockBadge("speed_demon");
+    if(ctx && ctx.blindUnder25) unlockBadge("sniper_blind");
+    if(ctx && ctx.optimalRoute) unlockBadge("route_master");
+    if(ctx && ctx.detectiveZeroHint) unlockBadge("detective_ace");
+
+    if(BORDER_PROVINCES.every(c => mastered.has(c))) unlockBadge("border_guard");
+    const byReg = r => CITIES.filter(c => c[4] === r).every(c => mastered.has(c[0]));
+    if(byReg("Marmara")) unlockBadge("marmara_master");
+    if(byReg("Ege")) unlockBadge("ege_master");
+    if(byReg("Akdeniz")) unlockBadge("akdeniz_master");
+    if(byReg("İç Anadolu")) unlockBadge("icanadolu_master");
+    if(byReg("Karadeniz")) unlockBadge("karadeniz_master");
+    if(mastered.size === 81) unlockBadge("all_81");
+  }
+
+  function getDailyStreakInfo(){
+    try {
+      return JSON.parse(localStorage.getItem("trDailyStreak_v1") || '{"count":0,"lastDate":""}');
+    } catch(e) { return { count:0, lastDate:"" }; }
+  }
+
+  function recordDailyCompletion(){
+    const today = getTodayKey();
+    const yestDate = new Date(Date.now() - 86400000);
+    const yest = `${String(yestDate.getDate()).padStart(2,"0")}.${String(yestDate.getMonth()+1).padStart(2,"0")}.${yestDate.getFullYear()}`;
+    const info = getDailyStreakInfo();
+    if(info.lastDate === today) return;
+    info.count = (info.lastDate === yest) ? info.count + 1 : 1;
+    info.lastDate = today;
+    try { localStorage.setItem("trDailyStreak_v1", JSON.stringify(info)); } catch(e) {}
+    refreshPassportBanner();
+  }
+
+  function refreshPassportBanner(){
+    const count = getMasteredSet().size;
+    const pct = Math.round((count / 81) * 100);
+    $("passportCount").textContent = `${count} / 81 (%${pct})`;
+    $("passportFill").style.width = `${pct}%`;
+    $("passportSub").textContent = count === 81
+      ? "🎉 Tebrikler! 81 ilin tamamında ustalaştın!"
+      : `Hatasız bildiğin ${count} il pasaportuna işlendi. Kalan: ${81 - count} il.`;
+    const dStreak = getDailyStreakInfo().count;
+    $("dailyStreakBadge").textContent = `🔥 Günlük Seri: ${dStreak}`;
+    $("badgeCountHeader").textContent = `${getUnlockedBadges().size}/${BADGE_DEFS.length}`;
+  }
+
+  /* ================= BFS EN KISA ROTA & MESAFE HESABI ================= */
+  function bfsShortestPath(startCode, endCode){
+    if(startCode === endCode) return [startCode];
+    const queue = [[startCode]];
+    const visited = new Set([startCode]);
+    while(queue.length){
+      const path = queue.shift();
+      const last = path[path.length - 1];
+      for(const nb of (NEIGHBORS[last] || [])){
+        if(nb === endCode) return [...path, nb];
+        if(!visited.has(nb)){
+          visited.add(nb);
+          queue.push([...path, nb]);
+        }
+      }
+    }
+    return [startCode, endCode];
+  }
+
+  function generateRouteTask(){
+    for(let tries = 0; tries < 60; tries++){
+      const a = 1 + Math.floor(Math.random() * 81);
+      const b = 1 + Math.floor(Math.random() * 81);
+      if(a === b) continue;
+      const path = bfsShortestPath(a, b);
+      if(path.length >= 4 && path.length <= 7){
+        return { start: a, end: b, optimal: path };
+      }
+    }
+    return { start: 22, end: 6, optimal: bfsShortestPath(22, 6) };
+  }
+
+  function haversineKmCoords(lat1, lon1, lat2, lon2){
+    const R = 6371;
+    const toRad = d => d * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+    return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+  }
+
+  function haversineKm(c1, c2){
+    return haversineKmCoords(c1[2], c1[3], c2[2], c2[3]);
+  }
+
+  function compassDirection(fromCity, toCity){
+    const dLon = toCity[3] - fromCity[3];
+    const dLat = toCity[2] - fromCity[2];
+    const angle = (Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360;
+    const dirs = [
+      ["kuzeyde", "⬆️"], ["kuzeydoğuda", "↗️"], ["doğuda", "➡️"], ["güneydoğuda", "↘️"],
+      ["güneyde", "⬇️"], ["güneybatıda", "↙️"], ["batıda", "⬅️"], ["kuzeybatıda", "↖️"]
+    ];
+    return dirs[Math.round(angle / 45) % 8];
+  }
+
+  /* ================= PAYLAŞILABİLİR MEYDAN OKUMA & ÖZEL TEST ================= */
+  function encodePayload(obj){
+    const json = JSON.stringify(obj);
+    const bytes = new TextEncoder().encode(json);
+    let bin = "";
+    bytes.forEach(b => { bin += String.fromCharCode(b); });
+    return "TR-" + btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  function decodePayload(raw){
+    try {
+      let token = raw.trim();
+      if(token.includes("c=")){
+        const m = token.match(/[?&#]c=([^&#]+)/);
+        if(m) token = decodeURIComponent(m[1]);
+      }
+      if(token.startsWith("TR-")) token = token.slice(3);
+      token = token.replace(/-/g, "+").replace(/_/g, "/");
+      while(token.length % 4) token += "=";
+      const bin = atob(token);
+      const bytes = new Uint8Array(bin.length);
+      for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const obj = JSON.parse(new TextDecoder().decode(bytes));
+      if(obj && Array.isArray(obj.codes) && obj.codes.length >= 1){
+        return obj;
+      }
+    } catch(e) {}
+    return null;
+  }
+
+  function buildShareLink(codeToken){
+    const base = window.location.href.split("#")[0].split("?")[0];
+    return `${base}?c=${encodeURIComponent(codeToken)}`;
+  }
+
+  function checkIncomingUrlChallenge(){
+    const params = new URLSearchParams(window.location.search);
+    const cParam = params.get("c");
+    if(!cParam) return;
+    const parsed = decodePayload(cParam);
+    if(parsed) setIncomingChallenge(parsed);
+  }
+
+  function setIncomingChallenge(parsed){
+    activeChallenge = parsed;
+    $("incomingChallengeBanner").classList.remove("hidden");
+    const modeNames = { type:"İsim & Plaka", click:"Haritada Tıkla", blind:"Kör Harita", detective:"Dedektif" };
+    $("incomingChallengeTitle").textContent = `⚔️ ${parsed.title || "Özel Meydan Okuma"} (${parsed.codes.length} İl)`;
+    $("incomingChallengeDesc").textContent = parsed.challengerScore !== undefined
+      ? `${parsed.challengerName || "Arkadaşın"} bu turda ${parsed.challengerScore} puan yaptı! Mod: ${modeNames[parsed.mode] || "Klasik"}`
+      : `Mod: ${modeNames[parsed.mode] || "Klasik"} · Aynı illerde yarışmaya hazırsın!`;
+  }
+
+  /* ================= GÜNÜN TURU ================= */
+  function getTodayKey(){
+    const d = new Date();
+    return `${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`;
+  }
+
+  function getDailyDeck(){
+    const d = new Date();
+    let seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+    const rand = () => {
+      seed = (seed * 1664525 + 1013904223) % 4294967296;
+      return seed / 4294967296;
+    };
+    const pool = [...CITIES];
+    for(let i = pool.length - 1; i > 0; i--){
+      const j = Math.floor(rand() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool.slice(0, 10);
+  }
+
+  /* ================= VIEWBOX, PAN & PINCH-ZOOM ================= */
+  function applyViewBox(vb){
+    const svg = $("map");
+    if(!svg) return;
+    currentVB = vb;
+    svg.setAttribute("viewBox", vb.map(v => v.toFixed(2)).join(" "));
+  }
+
+  function clampViewBox(vb){
+    let [x, y, w, h] = vb;
+    w = Math.min(Math.max(w, FULL_VB[2] / 4.8), FULL_VB[2]);
+    h = Math.min(Math.max(h, FULL_VB[3] / 4.8), FULL_VB[3]);
+    x = Math.min(Math.max(x, FULL_VB[0]), FULL_VB[0] + FULL_VB[2] - w);
+    y = Math.min(Math.max(y, FULL_VB[1]), FULL_VB[1] + FULL_VB[3] - h);
+    return [x, y, w, h];
+  }
+
+  function animateViewBox(targetVB, duration = 360){
+    if(vbAnimId) cancelAnimationFrame(vbAnimId);
+    const clampedTarget = clampViewBox(targetVB);
+    const startVB = [...currentVB];
+    const startTime = performance.now();
+
+    function step(now){
+      const t = Math.min((now - startTime) / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      applyViewBox(startVB.map((s, i) => s + (clampedTarget[i] - s) * ease));
+      if(t < 1) vbAnimId = requestAnimationFrame(step);
+      else vbAnimId = null;
+    }
+    vbAnimId = requestAnimationFrame(step);
+  }
+
+  function zoomByFactor(factor, clientX, clientY){
+    const svg = $("map");
+    const rect = svg.getBoundingClientRect();
+    const rx = clientX !== undefined ? (clientX - rect.left) / rect.width : 0.5;
+    const ry = clientY !== undefined ? (clientY - rect.top) / rect.height : 0.5;
+    const newW = currentVB[2] * factor;
+    const newH = currentVB[3] * factor;
+    const newX = currentVB[0] + (currentVB[2] - newW) * rx;
+    const newY = currentVB[1] + (currentVB[3] - newH) * ry;
+    applyViewBox(clampViewBox([newX, newY, newW, newH]));
+  }
+
+  function zoomToCity(city, factor = 2.25){
+    if(!city) return;
+    const [cx, cy] = cityPos(city);
+    const w = FULL_VB[2] / factor;
+    const h = FULL_VB[3] / factor;
+    animateViewBox([cx - w / 2, cy - h / 2, w, h]);
+  }
+
+  function resetZoom(){
+    animateViewBox(FULL_VB);
+  }
+
+  function clientToSvgPoint(clientX, clientY){
+    const svg = $("map");
+    const pt = svg.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    const ctm = svg.getScreenCTM();
+    if(!ctm) return [0, 0];
+    const res = pt.matrixTransform(ctm.inverse());
+    return [res.x, res.y];
+  }
+
+  function setupMapPanZoom(){
+    const svg = $("map");
+
+    svg.addEventListener("wheel", e => {
+      e.preventDefault();
+      if(vbAnimId){ cancelAnimationFrame(vbAnimId); vbAnimId = null; }
+      const factor = e.deltaY < 0 ? 0.82 : 1.22;
+      zoomByFactor(factor, e.clientX, e.clientY);
+    }, { passive: false });
+
+    svg.addEventListener("pointerdown", e => {
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      didDrag = false;
+      if(activePointers.size === 1){
+        panStartClient = { x: e.clientX, y: e.clientY };
+        panStartVB = [...currentVB];
+      } else if(activePointers.size === 2){
+        const pts = [...activePointers.values()];
+        pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        pinchStartVB = [...currentVB];
+        didDrag = true;
+      }
+    });
+
+    window.addEventListener("pointermove", e => {
+      if(!activePointers.has(e.pointerId)) return;
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if(activePointers.size === 2){
+        const pts = [...activePointers.values()];
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        if(pinchStartDist > 10){
+          const scale = pinchStartDist / dist;
+          const midX = (pts[0].x + pts[1].x) / 2;
+          const midY = (pts[0].y + pts[1].y) / 2;
+          const rect = svg.getBoundingClientRect();
+          const rx = (midX - rect.left) / rect.width;
+          const ry = (midY - rect.top) / rect.height;
+          const newW = pinchStartVB[2] * scale;
+          const newH = pinchStartVB[3] * scale;
+          const newX = pinchStartVB[0] + (pinchStartVB[2] - newW) * rx;
+          const newY = pinchStartVB[1] + (pinchStartVB[3] - newH) * ry;
+          applyViewBox(clampViewBox([newX, newY, newW, newH]));
+        }
+        return;
+      }
+
+      if(activePointers.size === 1){
+        const dxPx = e.clientX - panStartClient.x;
+        const dyPx = e.clientY - panStartClient.y;
+        if(Math.hypot(dxPx, dyPx) > 6){
+          didDrag = true;
+          svg.classList.add("panning");
+        }
+        if(!didDrag) return;
+        const rect = svg.getBoundingClientRect();
+        const dxSvg = (dxPx / rect.width) * panStartVB[2];
+        const dySvg = (dyPx / rect.height) * panStartVB[3];
+        applyViewBox(clampViewBox([panStartVB[0] - dxSvg, panStartVB[1] - dySvg, panStartVB[2], panStartVB[3]]));
+      }
+    });
+
+    const releasePointer = e => {
+      activePointers.delete(e.pointerId);
+      if(activePointers.size === 0){
+        svg.classList.remove("panning");
+        setTimeout(() => { didDrag = false; }, 35);
+      }
+    };
+    window.addEventListener("pointerup", releasePointer);
+    window.addEventListener("pointercancel", releasePointer);
+
+    // Kör Harita tıklaması (SVG yüzeyi üzerinde)
+    svg.addEventListener("click", e => {
+      if(didDrag || gameMode !== "blind" || answered || !current) return;
+      const [svgX, svgY] = clientToSvgPoint(e.clientX, e.clientY);
+      handleBlindMapClick(svgX, svgY);
+    });
+  }
+
+  /* ================= İL SINIRLARI & FİZİKİ KATMAN ================= */
+  function clipHalfPlane(poly, ax, ay, bx, by){
+    const out = [];
+    const mx = (ax + bx) / 2, my = (ay + by) / 2;
+    const dx = bx - ax, dy = by - ay;
+    const inside = p => (p[0] - mx) * dx + (p[1] - my) * dy <= 0;
+    const intersect = (p1, p2) => {
+      const d1 = (p1[0] - mx) * dx + (p1[1] - my) * dy;
+      const d2 = (p2[0] - mx) * dx + (p2[1] - my) * dy;
+      const t = d1 / (d1 - d2 + 1e-12);
+      return [p1[0] + t * (p2[0] - p1[0]), p1[1] + t * (p2[1] - p1[1])];
+    };
+    for(let i = 0; i < poly.length; i++){
+      const cur = poly[i], prev = poly[(i + poly.length - 1) % poly.length];
+      const cIn = inside(cur), pIn = inside(prev);
+      if(cIn){
+        if(!pIn) out.push(intersect(prev, cur));
+        out.push(cur);
+      } else if(pIn){
+        out.push(intersect(prev, cur));
+      }
+    }
+    return out;
+  }
+
+  function attachProvinceClick(el, cityIndex){
+    el.addEventListener("click", e => {
+      if(didDrag) return;
+      if(gameMode === "blind") return; // Kör harita SVG click handler'ını kullanır
+      e.stopPropagation();
+      if(gameMode === "atlas"){
+        inspectAtlasCity(cityIndex);
+      } else if((gameMode === "click" || gameMode === "heritage") && !answered && current){
+        handleMapProvinceClick(cityIndex);
+      } else if(gameMode === "neighbors" && !answered && current){
+        handleNeighborProvinceClick(cityIndex);
+      } else if(gameMode === "route" && !answered){
+        handleRouteProvinceClick(cityIndex);
+      }
+    });
+  }
+
+  function renderFallbackBorders(){
+    provGroup.innerHTML = "";
+    const outerPoly = BORDER.map(proj);
+    const centers = CITIES.map(cityPos);
+
+    CITIES.forEach((c, i) => {
+      let cell = outerPoly.slice();
+      const [ax, ay] = centers[i];
+      for(let j = 0; j < centers.length; j++){
+        if(i === j) continue;
+        const [bx, by] = centers[j];
+        if((ax-bx)**2 + (ay-by)**2 > 22000) continue;
+        cell = clipHalfPlane(cell, ax, ay, bx, by);
+        if(cell.length < 3) break;
+      }
+      if(cell.length >= 3){
+        const regCls = REGION_CLASS[c[4]] || "";
+        const p = svgEl("polygon", {
+          class: `prov ${regCls}`,
+          points: cell.map(pt => pt.map(v => v.toFixed(1)).join(",")).join(" ")
+        }, provGroup);
+        attachProvinceClick(p, i);
+        provEls[i] = p;
+      }
+    });
+  }
+
+  function pointInRing(pt, ring){
+    let inside = false;
+    for(let i = 0, j = ring.length - 1; i < ring.length; j = i++){
+      const xi = ring[i][0], yi = ring[i][1];
+      const xj = ring[j][0], yj = ring[j][1];
+      const hit = ((yi > pt[1]) !== (yj > pt[1])) &&
+                  (pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi + 1e-12) + xi);
+      if(hit) inside = !inside;
+    }
+    return inside;
+  }
+
+  function pointInGeometry(pt, geom){
+    if(!geom) return false;
+    if(geom.type === "Polygon") return pointInRing(pt, geom.coordinates[0]);
+    if(geom.type === "MultiPolygon") return geom.coordinates.some(poly => pointInRing(pt, poly[0]));
+    return false;
+  }
+
+  function geomToPathD(geom){
+    const polys = geom.type === "Polygon" ? [geom.coordinates] : geom.coordinates;
+    return polys.map(poly =>
+      poly.map(ring =>
+        ring.map((coord, idx) => {
+          const [x, y] = proj(coord);
+          return `${idx === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(" ") + " Z"
+      ).join(" ")
+    ).join(" ");
+  }
+
+  async function loadRealProvinceBorders(){
+    const urls = [
+      "https://cdn.jsdelivr.net/gh/cihadturhan/tr-geojson@master/geo/tr-cities-utf8.json",
+      "https://raw.githubusercontent.com/cihadturhan/tr-geojson/master/geo/tr-cities-utf8.json"
+    ];
+
+    for(const url of urls){
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 4500);
+        const res = await fetch(url, { signal: ctrl.signal });
+        clearTimeout(timer);
+        if(!res.ok) continue;
+        const geo = await res.json();
+        if(!geo || !Array.isArray(geo.features)) continue;
+
+        const matched = new Array(81).fill(null);
+        geo.features.forEach(feat => {
+          const props = feat.properties || {};
+          const rawName = props.name || props.NAME_1 || props.il || props.province || "";
+          let cityIdx = CITIES.findIndex(c => norm(c[1]) === norm(rawName));
+          if(cityIdx === -1){
+            cityIdx = CITIES.findIndex(c => pointInGeometry([c[3], c[2]], feat.geometry));
+          }
+          if(cityIdx !== -1 && !matched[cityIdx]){
+            matched[cityIdx] = feat.geometry;
+          }
+        });
+
+        if(matched.filter(Boolean).length >= 75){
+          provGroup.innerHTML = "";
+          if(baseLandEl) baseLandEl.style.display = "none";
+          if(marmaraEl) marmaraEl.style.display = "none";
+
+          matched.forEach((geom, i) => {
+            if(!geom) return;
+            const regCls = REGION_CLASS[CITIES[i][4]] || "";
+            const path = svgEl("path", {
+              class: `prov ${regCls}`,
+              d: geomToPathD(geom),
+              "fill-rule": "evenodd"
+            }, provGroup);
+            attachProvinceClick(path, i);
+            provEls[i] = path;
+          });
+
+          if(passportViewOn) applyPassportHighlights();
+          if(current && !answered && ["type","daily","duel"].includes(gameMode) && provEls[current[0]-1]){
+            provEls[current[0]-1].classList.add("active");
+          }
+          if(current && gameMode === "neighbors" && provEls[current[0]-1]){
+            provEls[current[0]-1].classList.add("center-hub");
+          }
+          if(gameMode === "route"){
+            paintRouteState();
+          }
+          return;
+        }
+      } catch(e) {}
+    }
+  }
+
+  function buildPhysicalLayer(svg){
+    physicalLayerEl = svgEl("g", { id:"physicalLayer", class:"hidden" }, svg);
+    RIVERS.forEach(r => {
+      const pts = r.pts.map(proj);
+      const d = pts.map((p, i) => `${i===0?"M":"L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+      svgEl("path", { class:"river-path", d }, physicalLayerEl);
+      const mid = pts[Math.floor(pts.length / 2)];
+      const txt = svgEl("text", { class:"river-label", x:mid[0].toFixed(1), y:(mid[1]-3).toFixed(1) }, physicalLayerEl);
+      txt.textContent = r.name;
+    });
+
+    PEAKS.forEach(pk => {
+      const [x, y] = proj([pk.lon, pk.lat]);
+      const triPts = `${x.toFixed(1)},${(y-5).toFixed(1)} ${(x-4.5).toFixed(1)},${(y+3).toFixed(1)} ${(x+4.5).toFixed(1)},${(y+3).toFixed(1)}`;
+      svgEl("polygon", { class:"peak-tri", points:triPts }, physicalLayerEl);
+      const txt = svgEl("text", { class:"peak-label", x:(x+6).toFixed(1), y:(y+2).toFixed(1) }, physicalLayerEl);
+      txt.textContent = pk.name;
+    });
+  }
+
+  function buildMap(){
+    const svg = $("map");
+    if(!svg) return;
+    const pts = BORDER.map(proj);
+    const xs = pts.map(p=>p[0]), ys = pts.map(p=>p[1]);
+    const pad = 26;
+    FULL_VB = [
+      Math.min(...xs)-pad,
+      Math.min(...ys)-pad,
+      Math.max(...xs)-Math.min(...xs)+pad*2,
+      Math.max(...ys)-Math.min(...ys)+pad*2+12
+    ];
+    applyViewBox([...FULL_VB]);
+
+    baseLandEl = svgEl("polygon", { class:"land-bg", points:pts.map(p=>p.join(",")).join(" ") }, svg);
+    provGroup = svgEl("g", { id:"provincesLayer" }, svg);
+    renderFallbackBorders();
+
+    marmaraEl = svgEl("polygon", { class:"lake", points:MARMARA_SEA.map(proj).map(p=>p.join(",")).join(" ") }, svg);
+    LAKES.forEach(l => svgEl("polygon", { class:"lake", points:l.map(proj).map(p=>p.join(",")).join(" ") }, svg));
+
+    buildPhysicalLayer(svg);
+
+    CITIES.forEach((c, i) => {
+      const [cx, cy] = cityPos(c);
+      dotEls[i] = svgEl("circle", { class:"dot", cx:cx.toFixed(1), cy:cy.toFixed(1), r:2.8 }, svg);
+    });
+
+    optimalRoutePolylineEl = svgEl("polyline", { id:"optimalRoutePolyline", class:"hidden" }, svg);
+    routePolylineEl = svgEl("polyline", { id:"routePolyline", class:"hidden" }, svg);
+    distanceLineEl = svgEl("line", { id:"distanceLine", class:"hidden" }, svg);
+    wrongDotEl = svgEl("circle", { r:4.5, fill:"#ef4444", stroke:"#fff", "stroke-width":"1.5", class:"hidden" }, svg);
+
+    const marker = svgEl("g", { id:"marker" }, svg);
+    svgEl("circle", { class:"halo", r:11 }, marker);
+    svgEl("circle", { class:"core", r:5.5 }, marker);
+    markerQ = svgEl("text", { class:"markQ", y:-16, dy:".35em" }, marker);
+    markerQ.textContent = "?";
+    markerEl = marker;
+
+    labelEl = svgEl("text", { id:"cityLabel", dy:".35em" }, svg);
+
+    setupMapPanZoom();
+    loadRealProvinceBorders();
+  }
+
+  /* ================= OYUN AKIŞI & MODLAR ================= */
+  function shuffle(a){
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function clearTimers(){
+    if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+    if(autoNextTimeout){ clearTimeout(autoNextTimeout); autoNextTimeout = null; }
+  }
+
+  function startBlitzTimer(){
+    clearTimers();
+    timeLeft = 60;
+    const chip = $("timerChip");
+    chip.classList.remove("hidden", "urgent");
+    $("pTimer").textContent = `${timeLeft}s`;
+
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      $("pTimer").textContent = `${Math.max(0, timeLeft)}s`;
+      if(timeLeft <= 10) chip.classList.add("urgent");
+      if(timeLeft <= 0){
+        clearTimers();
+        endGame();
+      }
+    }, 1000);
+  }
+
+  function clearMapOverlays(){
+    distanceLineEl.classList.add("hidden");
+    wrongDotEl.classList.add("hidden");
+    routePolylineEl.classList.add("hidden");
+    optimalRoutePolylineEl.classList.add("hidden");
+  }
+
+  function applyPassportHighlights(){
+    const mastered = getMasteredSet();
+    provEls.forEach((p, i) => {
+      if(!p) return;
+      p.classList.toggle("mastered", mastered.has(i + 1));
+    });
+  }
+
+  function startGame(customPool, challengeObj){
+    clearTimers();
+    clearMapOverlays();
+    currentHeritage = null;
+
+    if(challengeObj){
+      gameMode = challengeObj.mode || "type";
+      deck = challengeObj.codes.map(code => CITIES[code - 1]).filter(Boolean);
+    } else if(Array.isArray(customPool) && customPool.length){
+      deck = shuffle([...customPool]);
+    } else if(gameMode === "daily"){
+      deck = getDailyDeck();
+    } else if(gameMode === "heritage"){
+      const pool = selectedRegion === "ALL"
+        ? [...HERITAGE_CARDS]
+        : HERITAGE_CARDS.filter(h => CITIES[h[0]-1][4] === selectedRegion);
+      deck = shuffle(pool.length ? pool : [...HERITAGE_CARDS]);
+    } else if(gameMode === "route"){
+      deck = Array.from({length: 5}, () => generateRouteTask());
+    } else if(gameMode === "duel"){
+      const pool = selectedRegion === "ALL" ? [...CITIES] : CITIES.filter(c => c[4] === selectedRegion);
+      deck = shuffle(pool).slice(0, Math.min(10, pool.length));
+    } else if(gameMode === "atlas"){
+      deck = [...CITIES];
+    } else {
+      const pool = selectedRegion === "ALL" ? [...CITIES] : CITIES.filter(c => c[4] === selectedRegion);
+      deck = shuffle(pool);
+    }
+
+    idx = 0; score = 0; streak = 0; bestStreak = 0; lives = 3;
+    missedCities = []; regionStats = {}; dailyResults = [];
+    duelScores = [0, 0]; duelTurn = 0;
+    duelNames = [
+      $("p1NameInput").value.trim() || "1. Oyuncu",
+      $("p2NameInput").value.trim() || "2. Oyuncu"
+    ];
+
+    const mapEl = $("map");
+    mapEl.classList.remove("click-mode", "passport-view", "blind-mode", "blind-cursor");
+    passportViewOn = false;
+    $("passportMapToggleBtn").classList.add("hidden");
+
+    dotEls.forEach(d => d.classList.remove("good","half","bad"));
+    provEls.forEach(p => {
+      if(!p) return;
+      p.classList.remove("active","center-hub","route-start","route-end","route-step","good","half","bad","wrong-pick","mastered");
+      const oldTitle = p.querySelector("title");
+      if(oldTitle) oldTitle.remove();
+    });
+
+    ["typePanel","clickPanel","routePanel","detectivePanel","heritagePanel","neighborsPanel","atlasPanel",
+     "duelBar","livesChip","timerChip","revealNbBtn","undoRouteBtn","revealRouteBtn"].forEach(id => $(id).classList.add("hidden"));
+    $("standardHud").classList.remove("hidden");
+    $("gameBtns").classList.remove("hidden");
+    $("hintBtn").classList.remove("hidden");
+
+    if(gameMode === "atlas"){
+      mapEl.classList.add("click-mode");
+      $("standardHud").classList.add("hidden");
+      $("hintBtn").classList.add("hidden");
+      $("atlasPanel").classList.remove("hidden");
+      $("submitBtn").classList.add("hidden");
+      $("nextBtn").classList.add("hidden");
+      $("passportMapToggleBtn").classList.remove("hidden");
+      $("qTitle").textContent = "📖 İnteraktif Türkiye Atlası";
+      $("qHint").textContent = "Bilgilerini görmek istediğin ilin üzerine tıkla.";
+      $("mapModeBadge").textContent = "📖 Serbest Atlas & Pasaport";
+      markerEl.classList.remove("on");
+      labelEl.classList.remove("on");
+      $("feedback").style.display = "none";
+    } else if(gameMode === "click"){
+      mapEl.classList.add("click-mode");
+      $("clickPanel").classList.remove("hidden");
+      $("submitBtn").classList.add("hidden");
+      $("qTitle").textContent = "Bu ili haritada bul! 🖱️";
+      $("qHint").textContent = "Plakası ve adı verilen ilin sınırına tıkla.";
+      $("mapModeBadge").textContent = selectedRegion === "ALL" ? "🖱️ Haritada Bul" : `🖱️ ${selectedRegion}`;
+    } else if(gameMode === "blind"){
+      mapEl.classList.add("blind-mode", "blind-cursor");
+      $("clickPanel").classList.remove("hidden");
+      $("submitBtn").classList.add("hidden");
+      $("qTitle").textContent = "🎯 Kör Harita (Nokta Atışı)";
+      $("qHint").textContent = "İl sınırları gizli! Şehrin tam konumuna tıkla.";
+      $("mapModeBadge").textContent = "🎯 Kör Harita";
+    } else if(gameMode === "route"){
+      mapEl.classList.add("click-mode");
+      $("routePanel").classList.remove("hidden");
+      $("submitBtn").classList.add("hidden");
+      $("undoRouteBtn").classList.remove("hidden");
+      $("revealRouteBtn").classList.remove("hidden");
+      $("qTitle").textContent = "🛣️ A'dan B'ye Rota Çiz";
+      $("qHint").textContent = "Başlangıç ilinden hedefe yalnızca komşu illere tıklayarak ulaş!";
+      $("mapModeBadge").textContent = "🛣️ En Kısa Yol Bulmacası";
+    } else if(gameMode === "detective"){
+      $("detectivePanel").classList.remove("hidden");
+      $("submitBtn").classList.remove("hidden");
+      $("hintBtn").classList.add("hidden");
+      $("qTitle").textContent = "🕵️ Coğrafya Dedektifi";
+      $("qHint").textContent = "İpuçlarını açarak şehri bul (az ipucu = yüksek puan).";
+      $("mapModeBadge").textContent = "🕵️ Dedektif Modu";
+    } else if(gameMode === "heritage"){
+      mapEl.classList.add("click-mode");
+      $("heritagePanel").classList.remove("hidden");
+      $("submitBtn").classList.add("hidden");
+      $("qTitle").textContent = "🏛️ Kültür, Yemek & Miras";
+      $("qHint").textContent = "Karttaki değerin bulunduğu ili haritada işaretle!";
+      $("mapModeBadge").textContent = "🏛️ Kültür & Miras";
+    } else if(gameMode === "neighbors"){
+      mapEl.classList.add("click-mode");
+      $("neighborsPanel").classList.remove("hidden");
+      $("submitBtn").classList.add("hidden");
+      $("revealNbBtn").classList.remove("hidden");
+      $("qTitle").textContent = "Komşu İlleri Bul! 🧩";
+      $("qHint").textContent = "Sarıyla işaretlenen merkez ilin tüm kara komşularına tıkla.";
+      $("mapModeBadge").textContent = "🧩 Komşu İller Modu";
+    } else if(gameMode === "duel"){
+      $("duelBar").classList.remove("hidden");
+      $("standardHud").classList.add("hidden");
+      $("typePanel").classList.remove("hidden");
+      $("submitBtn").classList.remove("hidden");
+      $("duelP1Label").textContent = `👤 ${duelNames[0]}`;
+      $("duelP2Label").textContent = `👤 ${duelNames[1]}`;
+      $("duelP1Score").textContent = "0";
+      $("duelP2Score").textContent = "0";
+      $("mapModeBadge").textContent = "⚔️ 2 Kişilik Düello";
+    } else {
+      $("typePanel").classList.remove("hidden");
+      $("submitBtn").classList.remove("hidden");
+      $("qTitle").textContent = challengeObj
+        ? `⚔️ ${challengeObj.title || "Meydan Okuma"}`
+        : (gameMode === "daily" ? `📅 Günün Turu (${getTodayKey()})` : "Bu hangi şehir? 🤔");
+      $("qHint").textContent = "Haritada kırmızıyla işaretlenen ili ve plakasını bul!";
+      $("mapModeBadge").textContent = challengeObj
+        ? `⚔️ ${challengeObj.title || "Meydan Okuma"}`
+        : (gameMode === "daily" ? `📅 Günün Turu · ${getTodayKey()}` : (selectedRegion === "ALL" ? "🗺️ Tüm Türkiye (81 İl)" : `📍 ${selectedRegion}`));
+    }
+
+    if(!["atlas","daily","duel","route"].includes(gameMode) && !challengeObj){
+      if(gameRule === "blitz") startBlitzTimer();
+      else if(gameRule === "survival"){
+        $("livesChip").classList.remove("hidden");
+        $("livesChip").textContent = "❤️❤️❤️";
+      }
+    }
+
+    $("startScreen").style.display = "none";
+    $("gameScreen").style.display = "grid";
+    closeModal("boardModal");
+    closeModal("endModal");
+    closeModal("builderModal");
+    resetZoom();
+
+    if(gameMode !== "atlas"){
+      nextQuestion();
+    }
+  }
+
+  /* ================= SERBEST ATLAS ================= */
+  function inspectAtlasCity(cityIdx){
+    const c = CITIES[cityIdx];
+    const [x, y] = cityPos(c);
+    const mastered = getMasteredSet().has(c[0]);
+
+    provEls.forEach(p => p && p.classList.remove("active"));
+    if(provEls[cityIdx]) provEls[cityIdx].classList.add("active");
+
+    markerEl.setAttribute("transform", `translate(${x.toFixed(1)},${y.toFixed(1)})`);
+    markerEl.classList.add("on");
+    markerQ.style.display = "none";
+
+    labelEl.textContent = `${c[1]} (${String(c[0]).padStart(2,"0")})`;
+    labelEl.setAttribute("x", Math.min(Math.max(x, 55), 525));
+    labelEl.setAttribute("y", y < 32 ? y + 20 : y - 16);
+    labelEl.classList.add("on");
+
+    const nbCodes = NEIGHBORS[c[0]] || [];
+    const nbButtons = nbCodes.map(code => {
+      const nb = CITIES[code - 1];
+      return `<button type="button" class="atlas-nb-btn" data-jump="${code - 1}">${nb[1]} (${String(nb[0]).padStart(2,"0")})</button>`;
+    }).join("");
+
+    const box = $("atlasInfoBox");
+    box.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="font-family:'Baloo 2',cursive;font-size:1.3rem">
+          ${c[1]} <span class="mini-plate"><span>TR</span><span>${String(c[0]).padStart(2,"0")}</span></span>
+        </div>
+        <span style="font-size:.78rem;font-weight:800;color:${mastered ? "#4ade80" : "#94a3b8"}">
+          ${mastered ? "🏅 Pasaportta İşli" : "⚪ Henüz İşlenmedi"}
+        </span>
+      </div>
+      <div style="color:#93c5fd;font-size:.86rem;margin:4px 0 8px">📍 ${c[4]} Bölgesi · ${nbCodes.length} Komşu İl</div>
+      <div style="font-size:.88rem;line-height:1.5;color:#e2e8f0">${c[5]}</div>
+      <div style="font-size:.78rem;color:#94a3b8;font-weight:700;margin-top:10px">Komşu İller (Tıkla & Git):</div>
+      <div class="atlas-neighbors">${nbButtons}</div>
+    `;
+
+    box.querySelectorAll(".atlas-nb-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetIdx = parseInt(btn.dataset.jump, 10);
+        inspectAtlasCity(targetIdx);
+        zoomToCity(CITIES[targetIdx], 2.1);
+      });
+    });
+  }
+
+  function showHint(){
+    if(!current || answered) return;
+    const hb = $("hintBox");
+    if(gameMode === "neighbors"){
+      const remaining = targetNeighbors.filter(code => !foundNeighbors.has(code)).map(code => CITIES[code - 1][1]);
+      hb.textContent = `🧭 İpucu: Kalan komşulardan biri "${remaining[0]}"!`;
+    } else if(gameMode === "route"){
+      const lastCode = routePath[routePath.length - 1];
+      const subPath = bfsShortestPath(lastCode, routeEndCode);
+      if(subPath.length >= 2){
+        hb.textContent = `🧭 İpucu: Sıradaki en kısa adım "${CITIES[subPath[1]-1][1]}"!`;
+      }
+    } else {
+      hb.textContent = `🧭 İpucu: Bu il ${current[4]} Bölgesi'nde yer alıyor.`;
+    }
+    hb.style.display = "block";
+    $("hintBtn").disabled = true;
+  }
+
+  /* ================= SORU HAZIRLAMA ================= */
+  function nextQuestion(){
+    clearMapOverlays();
+    if(idx >= deck.length){
+      if(gameRule === "blitz" && timeLeft > 0 && !["daily","duel","route"].includes(gameMode) && !activeChallenge){
+        const pool = gameMode === "heritage"
+          ? [...HERITAGE_CARDS]
+          : (selectedRegion === "ALL" ? [...CITIES] : CITIES.filter(c => c[4] === selectedRegion));
+        deck = shuffle(pool);
+        idx = 0;
+      } else {
+        endGame();
+        return;
+      }
+    }
+
+    answered = false;
+    questionStartTime = performance.now();
+
+    if(gameMode === "heritage"){
+      currentHeritage = deck[idx];
+      current = CITIES[currentHeritage[0] - 1];
+    } else if(gameMode === "route"){
+      const task = deck[idx];
+      routeStartCode = task.start;
+      routeEndCode = task.end;
+      routeOptimal = task.optimal;
+      routePath = [routeStartCode];
+      current = CITIES[routeEndCode - 1];
+    } else {
+      currentHeritage = null;
+      current = deck[idx];
+    }
+
+    $("hintBox").style.display = "none";
+    $("hintBtn").disabled = false;
+    $("nextBtn").classList.add("hidden");
+    const isLast = (gameRule !== "blitz" || ["daily","duel","route"].includes(gameMode) || activeChallenge) && idx === deck.length - 1;
+    $("nextBtn").textContent = isLast ? "🏁 Sonucu Gör" : "Sonraki Soru ➡";
+    $("feedback").style.display = "none";
+    $("feedback").classList.remove("shake");
+
+    provEls.forEach(p => p && p.classList.remove("active","center-hub","route-start","route-end","route-step","wrong-pick"));
+    labelEl.classList.remove("on");
+
+    if(gameMode === "duel"){
+      duelTurn = idx % 2;
+      $("duelP1Box").classList.toggle("turn", duelTurn === 0);
+      $("duelP2Box").classList.toggle("turn", duelTurn === 1);
+      $("qTitle").textContent = `🎯 Sıra: ${duelNames[duelTurn]} (${Math.floor(idx/2) + 1}/${Math.ceil(deck.length/2)})`;
+    }
+
+    if(["type","daily","duel"].includes(gameMode)){
+      ["nameInput","plateInput"].forEach(id => {
+        const e = $(id);
+        e.value = "";
+        e.disabled = false;
+        e.classList.remove("ok","bad");
+      });
+      $("plateWrap").classList.remove("ok","bad");
+      $("submitBtn").classList.remove("hidden");
+
+      const activeProv = provEls[current[0]-1];
+      if(activeProv){
+        activeProv.classList.add("active");
+        provGroup.appendChild(activeProv);
+      }
+
+      const [x, y] = cityPos(current);
+      markerEl.setAttribute("transform", `translate(${x.toFixed(1)},${y.toFixed(1)})`);
+      markerEl.classList.add("on");
+      markerQ.style.display = "";
+
+      if(SMALL_PROVINCES.has(current[0])) zoomToCity(current);
+      else resetZoom();
+
+      updateHUD(false);
+      $("nameInput").focus();
+    } else if(gameMode === "click"){
+      markerEl.classList.remove("on");
+      $("targetPlateText").textContent = String(current[0]).padStart(2, "0");
+      $("targetCityText").textContent = current[1].toLocaleUpperCase("tr");
+      resetZoom();
+      updateHUD(false);
+    } else if(gameMode === "blind"){
+      markerEl.classList.remove("on");
+      $("map").classList.add("blind-mode");
+      $("targetPlateText").textContent = "??";
+      $("targetCityText").textContent = current[1].toLocaleUpperCase("tr");
+      resetZoom();
+      updateHUD(false);
+    } else if(gameMode === "route"){
+      markerEl.classList.remove("on");
+      $("undoRouteBtn").disabled = true;
+      $("revealRouteBtn").disabled = false;
+      $("routeStartName").textContent = `${CITIES[routeStartCode-1][1]} (${String(routeStartCode).padStart(2,"0")})`;
+      $("routeEndName").textContent = `${CITIES[routeEndCode-1][1]} (${String(routeEndCode).padStart(2,"0")})`;
+      paintRouteState();
+      resetZoom();
+      updateHUD(false);
+    } else if(gameMode === "detective"){
+      markerEl.classList.remove("on");
+      detectiveHintsOpened = 0;
+      const inp = $("detectiveInput");
+      inp.value = ""; inp.disabled = false; inp.classList.remove("ok","bad");
+      $("submitBtn").classList.remove("hidden");
+      renderDetectiveClues();
+      resetZoom();
+      updateHUD(false);
+      inp.focus();
+    } else if(gameMode === "heritage"){
+      markerEl.classList.remove("on");
+      $("heritageCategory").textContent = currentHeritage[1];
+      $("heritageTitle").textContent = currentHeritage[2];
+      $("heritageDesc").textContent = currentHeritage[3];
+      resetZoom();
+      updateHUD(false);
+    } else if(gameMode === "neighbors"){
+      targetNeighbors = [...(NEIGHBORS[current[0]] || [])];
+      foundNeighbors = new Set();
+      nbWrongClicks = 0;
+
+      provEls.forEach(p => p && p.classList.remove("good","half","bad","wrong-pick","center-hub"));
+      dotEls.forEach(d => d.classList.remove("good","half","bad"));
+
+      const centerProv = provEls[current[0] - 1];
+      if(centerProv){
+        centerProv.classList.add("center-hub");
+        provGroup.appendChild(centerProv);
+      }
+      const [x, y] = cityPos(current);
+      markerEl.setAttribute("transform", `translate(${x.toFixed(1)},${y.toFixed(1)})`);
+      markerEl.classList.add("on");
+      markerQ.style.display = "none";
+
+      $("nbCenterPlate").textContent = String(current[0]).padStart(2, "0");
+      $("nbCenterName").textContent = current[1].toLocaleUpperCase("tr");
+      $("revealNbBtn").disabled = false;
+      renderNeighborSlots(false);
+      zoomToCity(current, 1.85);
+      updateHUD(false);
+    }
+  }
+
+  /* ================= MOD 1: A'DAN B'YE ROTA ÇİZME ================= */
+  function paintRouteState(){
+    provEls.forEach(p => p && p.classList.remove("route-start","route-end","route-step","wrong-pick"));
+    if(provEls[routeStartCode - 1]) provEls[routeStartCode - 1].classList.add("route-start");
+    if(provEls[routeEndCode - 1]) provEls[routeEndCode - 1].classList.add("route-end");
+
+    routePath.forEach((code, i) => {
+      if(i > 0 && code !== routeEndCode && provEls[code - 1]){
+        provEls[code - 1].classList.add("route-step");
+      }
+    });
+
+    const ptsStr = routePath.map(code => cityPos(CITIES[code - 1]).map(v => v.toFixed(1)).join(",")).join(" ");
+    if(routePath.length >= 2){
+      routePolylineEl.setAttribute("points", ptsStr);
+      routePolylineEl.classList.remove("hidden");
+    } else {
+      routePolylineEl.classList.add("hidden");
+    }
+
+    const userSteps = routePath.length - 1;
+    const optSteps = routeOptimal.length - 1;
+    $("routeStepCounter").textContent = `Adım: ${userSteps} · Hedef en kısa yol: ${optSteps} adım`;
+    $("undoRouteBtn").disabled = routePath.length <= 1 || answered;
+
+    $("routeChain").innerHTML = routePath.map((code, i) => {
+      const c = CITIES[code - 1];
+      return `${i > 0 ? '<span style="color:#64748b">→</span>' : ""}<span class="route-node ${i===0?"start":""}">${c[1]}</span>`;
+    }).join("");
+  }
+
+  function handleRouteProvinceClick(clickedIdx){
+    const clickedCode = clickedIdx + 1;
+    const lastCode = routePath[routePath.length - 1];
+    if(clickedCode === lastCode) return;
+
+    // Geri dönüş tıklaması (bir önceki ile tıklanırsa geri al)
+    if(routePath.length >= 2 && clickedCode === routePath[routePath.length - 2]){
+      routePath.pop();
+      paintRouteState();
+      return;
+    }
+
+    const allowedNeighbors = NEIGHBORS[lastCode] || [];
+    if(!allowedNeighbors.includes(clickedCode)){
+      if(provEls[clickedIdx]){
+        provEls[clickedIdx].classList.add("wrong-pick");
+        setTimeout(() => provEls[clickedIdx] && provEls[clickedIdx].classList.remove("wrong-pick"), 450);
+      }
+      sfx("nope");
+      return;
+    }
+
+    if(!routePath.includes(clickedCode)){
+      routePath.push(clickedCode);
+      sfx("half");
+      paintRouteState();
+    }
+
+    if(clickedCode === routeEndCode){
+      finishRouteRound(false);
+    }
+  }
+
+  function undoRouteStep(){
+    if(answered || routePath.length <= 1) return;
+    routePath.pop();
+    paintRouteState();
+  }
+
+  function finishRouteRound(revealed){
+    if(answered) return;
+    answered = true;
+    $("hintBtn").disabled = true;
+    $("undoRouteBtn").disabled = true;
+    $("revealRouteBtn").disabled = true;
+    $("nextBtn").classList.remove("hidden");
+
+    const userSteps = routePath.length - 1;
+    const optSteps = routeOptimal.length - 1;
+    const isOptimal = !revealed && userSteps <= optSteps;
+    const gained = revealed ? 0 : (isOptimal ? 3 : (userSteps <= optSteps + 2 ? 2 : 1));
+
+    score += gained;
+    streak = isOptimal ? streak + 1 : 0;
+    if(streak > bestStreak) bestStreak = streak;
+    if(isOptimal){
+      markCityMastered(routeEndCode);
+      checkAllBadges({ optimalRoute: true });
+    }
+
+    // En kısa yolu kesikli sarı çizgiyle göster
+    const optPts = routeOptimal.map(code => cityPos(CITIES[code - 1]).map(v => v.toFixed(1)).join(",")).join(" ");
+    optimalRoutePolylineEl.setAttribute("points", optPts);
+    optimalRoutePolylineEl.classList.remove("hidden");
+
+    const optNames = routeOptimal.map(c => CITIES[c-1][1]).join(" → ");
+    const fb = $("feedback");
+    fb.style.display = "block";
+    fb.innerHTML = `
+      <div class="frow ${gained>0?"ok":"bad"}">
+        ${isOptimal ? "🎉 Mükemmel! En kısa rotayı kurdun!" : revealed ? "👀 En kısa rota haritada gösterildi." : `👍 Hedefe ${userSteps} adımda ulaştın (En kısa: ${optSteps} adım)`}
+      </div>
+      <div class="frow" style="color:#fde047;font-size:.86rem">🧭 En Kısa Rota: <b>${optNames}</b></div>
+      <div class="points">+${gained} puan</div>`;
+
+    if(isOptimal){ confetti(); sfx("win"); } else if(gained > 0){ sfx("half"); } else { sfx("nope"); }
+    updateHUD(true);
+  }
+
+  /* ================= MOD 2: KÖR HARİTA ================= */
+  function handleBlindMapClick(svgX, svgY){
+    answered = true;
+    $("hintBtn").disabled = true;
+    $("map").classList.remove("blind-mode"); // Sınırları geri aç!
+
+    const [lon, lat] = invProj(svgX, svgY);
+    const km = haversineKmCoords(lat, lon, current[2], current[3]);
+    const gained = km <= 35 ? 3 : km <= 90 ? 2 : km <= 180 ? 1 : 0;
+
+    score += gained;
+    streak = gained >= 2 ? streak + 1 : 0;
+    if(streak > bestStreak) bestStreak = streak;
+    if(gained >= 2) markCityMastered(current[0]);
+    if(km <= 25) checkAllBadges({ blindUnder25: true });
+    if(gained === 0 && !missedCities.some(c => c[0] === current[0])) missedCities.push(current);
+
+    recordRegionStat(current[4], Math.min(gained, 2));
+    if(gameRule === "survival" && gained === 0){
+      lives--;
+      updateLivesHUD();
+    }
+    if(gameRule !== "blitz") $("nextBtn").classList.remove("hidden");
+
+    const [tx, ty] = cityPos(current);
+    distanceLineEl.setAttribute("x1", svgX.toFixed(1));
+    distanceLineEl.setAttribute("y1", svgY.toFixed(1));
+    distanceLineEl.setAttribute("x2", tx.toFixed(1));
+    distanceLineEl.setAttribute("y2", ty.toFixed(1));
+    distanceLineEl.classList.remove("hidden");
+
+    wrongDotEl.setAttribute("cx", svgX.toFixed(1));
+    wrongDotEl.setAttribute("cy", svgY.toFixed(1));
+    wrongDotEl.classList.remove("hidden");
+
+    markerEl.setAttribute("transform", `translate(${tx.toFixed(1)},${ty.toFixed(1)})`);
+    markerEl.classList.add("on");
+    markerQ.style.display = "none";
+
+    const st = gained >= 2 ? "good" : gained === 1 ? "half" : "bad";
+    if(provEls[current[0]-1]) provEls[current[0]-1].classList.add(st);
+    dotEls[current[0]-1].classList.add(st);
+
+    labelEl.textContent = `${current[1]} (${String(current[0]).padStart(2,"0")})`;
+    labelEl.setAttribute("x", Math.min(Math.max(tx, 55), 525));
+    labelEl.setAttribute("y", ty < 32 ? ty + 20 : ty - 16);
+    labelEl.classList.add("on");
+
+    const fb = $("feedback");
+    fb.style.display = "block";
+    fb.innerHTML = `
+      <div class="frow ${gained>0?"ok":"bad"}">🎯 Hedefe uzaklığın: <b>${km} km</b> (${current[1]} - ${String(current[0]).padStart(2,"0")})</div>
+      <div class="points">${gained===3?"🔥 Tam İsabet! +3 puan!":gained===2?"👏 Çok Yakın! +2 puan!":gained===1?"👍 Yaklaştın! +1 puan":"😅 Uzak kaldı (0 puan)"}</div>
+      <div class="city-fact">💡 ${current[5]}</div>`;
+
+    if(gained === 3){ confetti(); sfx("win"); } else if(gained > 0){ sfx("half"); } else { sfx("nope"); }
+    updateHUD(true);
+
+    if(gameRule === "survival" && lives <= 0) autoNextTimeout = setTimeout(endGame, 950);
+    else if(gameRule === "blitz") autoNextTimeout = setTimeout(() => { if(timeLeft > 0) nextQuestionOrEnd(); }, 850);
+  }
+
+  /* ================= MOD 3: DEDEKTİF (KADEMELİ İPUCU) ================= */
+  function renderDetectiveClues(){
+    const nbList = (NEIGHBORS[current[0]] || []).map(c => CITIES[c-1][1]);
+    const maskedFact = current[5].replace(new RegExp(current[1], "gi"), "•••");
+    const clues = [
+      { title: "1. Bölge & Komşu Sayısı", text: `${current[4]} Bölgesi'nde yer alır ve ${nbList.length} komşu ili vardır.`, alwaysOpen: true },
+      { title: "2. Coğrafi & Kültürel Özellik (-1 Puan)", text: maskedFact },
+      { title: "3. Komşu İlleri (-1 Puan)", text: `Komşuları arasında ${nbList.slice(0, 2).join(" ve ")} bulunur.` },
+      { title: "4. Plaka Kodu (-1 Puan)", text: `Plaka kodu: ${String(current[0]).padStart(2, "0")}` }
+    ];
+
+    $("detectiveClueList").innerHTML = clues.map((cl, i) => {
+      const isOpen = cl.alwaysOpen || i <= detectiveHintsOpened;
+      if(isOpen){
+        return `<div class="clue-card"><div><b style="color:#fbbf24;font-size:.78rem">${cl.title}</b><div>${cl.text}</div></div><span>🔓</span></div>`;
+      }
+      return `<div class="clue-card locked" data-open-clue="${i}"><span>🔒 <b>${cl.title}</b> — Açmak için tıkla</span><span>👁️</span></div>`;
+    }).join("");
+
+    $("detectiveClueList").querySelectorAll("[data-open-clue]").forEach(el => {
+      el.addEventListener("click", () => {
+        if(answered) return;
+        detectiveHintsOpened++;
+        renderDetectiveClues();
+      });
+    });
+  }
+
+  function submitDetectiveAnswer(){
+    if(answered || !current) return;
+    const val = $("detectiveInput").value.trim();
+    const nInput = norm(val);
+    const nTarget = norm(current[1]);
+    const ok = Boolean(val) && (nInput === nTarget || ALIASES[nInput] === current[0] || (nTarget.length >= 5 && levenshtein(nInput, nTarget) === 1));
+
+    answered = true;
+    const potential = Math.max(2, 5 - detectiveHintsOpened);
+    const gained = ok ? potential : 0;
+
+    score += gained;
+    streak = ok ? streak + 1 : 0;
+    if(streak > bestStreak) bestStreak = streak;
+    if(ok){
+      markCityMastered(current[0]);
+      if(detectiveHintsOpened === 0) checkAllBadges({ detectiveZeroHint: true });
+    } else if(!missedCities.some(c => c[0] === current[0])){
+      missedCities.push(current);
+    }
+
+    recordRegionStat(current[4], ok ? 2 : 0);
+    if(gameRule === "survival" && !ok){ lives--; updateLivesHUD(); }
+
+    $("detectiveInput").disabled = true;
+    $("detectiveInput").classList.add(ok ? "ok" : "bad");
+    $("submitBtn").classList.add("hidden");
+    if(gameRule !== "blitz") $("nextBtn").classList.remove("hidden");
+
+    const [x, y] = cityPos(current);
+    markerEl.setAttribute("transform", `translate(${x.toFixed(1)},${y.toFixed(1)})`);
+    markerEl.classList.add("on");
+    markerQ.style.display = "none";
+    if(provEls[current[0]-1]) provEls[current[0]-1].classList.add(ok ? "good" : "bad");
+    dotEls[current[0]-1].classList.add(ok ? "good" : "bad");
+
+    labelEl.textContent = `${current[1]} (${String(current[0]).padStart(2,"0")})`;
+    labelEl.setAttribute("x", Math.min(Math.max(x, 55), 525));
+    labelEl.setAttribute("y", y < 32 ? y + 20 : y - 16);
+    labelEl.classList.add("on");
+
+    const fb = $("feedback");
+    fb.style.display = "block";
+    fb.innerHTML = `
+      <div class="frow ${ok?"ok":"bad"}">${ok ? `🕵️ Tebrikler! Doğru cevap: <b>${current[1]} (${String(current[0]).padStart(2,"0")})</b>` : `❌ Yanlış — aranan şehir: <b>${current[1]} (${String(current[0]).padStart(2,"0")})</b>`}</div>
+      <div class="points">${ok ? `🎉 +${gained} puan!` : "😅 0 puan"}</div>
+      <div class="city-fact">💡 ${current[5]}</div>`;
+
+    if(ok){ confetti(); sfx("win"); } else { sfx("nope"); }
+    updateHUD(true);
+
+    if(gameRule === "survival" && lives <= 0) autoNextTimeout = setTimeout(endGame, 950);
+    else if(gameRule === "blitz") autoNextTimeout = setTimeout(() => { if(timeLeft > 0) nextQuestionOrEnd(); }, 850);
+  }
+
+  /* ================= KOMŞU İLLERİ BUL ================= */
+  function renderNeighborSlots(revealAll){
+    $("nbProgressText").textContent = `Bulunan komşular: ${foundNeighbors.size} / ${targetNeighbors.length}`;
+    $("neighborSlots").innerHTML = targetNeighbors.map(code => {
+      const nb = CITIES[code - 1];
+      if(foundNeighbors.has(code)) return `<span class="nb-slot found">✅ ${nb[1]} (${String(nb[0]).padStart(2,"0")})</span>`;
+      if(revealAll) return `<span class="nb-slot revealed">📍 ${nb[1]} (${String(nb[0]).padStart(2,"0")})</span>`;
+      return `<span class="nb-slot">⬜ Komşu İl</span>`;
+    }).join("");
+  }
+
+  function handleNeighborProvinceClick(clickedIdx){
+    const clickedCode = clickedIdx + 1;
+    if(clickedCode === current[0] || foundNeighbors.has(clickedCode)) return;
+
+    if(targetNeighbors.includes(clickedCode)){
+      foundNeighbors.add(clickedCode);
+      if(provEls[clickedIdx]) provEls[clickedIdx].classList.add("good");
+      dotEls[clickedIdx].classList.add("good");
+      sfx("win");
+      renderNeighborSlots(false);
+      if(foundNeighbors.size === targetNeighbors.length) completeNeighborRound(false);
+    } else {
+      nbWrongClicks++;
+      if(provEls[clickedIdx]) provEls[clickedIdx].classList.add("wrong-pick");
+      sfx("nope");
+      if(gameRule === "survival"){
+        lives--;
+        updateLivesHUD();
+        if(lives <= 0) completeNeighborRound(true);
+      }
+    }
+  }
+
+  function completeNeighborRound(revealed){
+    if(answered) return;
+    answered = true;
+    $("hintBtn").disabled = true;
+    $("revealNbBtn").disabled = true;
+    renderNeighborSlots(true);
+
+    targetNeighbors.forEach(code => {
+      if(!foundNeighbors.has(code) && provEls[code - 1]) provEls[code - 1].classList.add("bad");
+    });
+
+    const perfect = !revealed && nbWrongClicks === 0;
+    const gained = revealed ? 0 : (perfect ? 2 : 1);
+    score += gained;
+    streak = perfect ? streak + 1 : 0;
+    if(streak > bestStreak) bestStreak = streak;
+    if(perfect) markCityMastered(current[0]);
+
+    recordRegionStat(current[4], gained);
+    if(gained < 2 && !missedCities.some(c => c[0] === current[0])) missedCities.push(current);
+    if(gameRule !== "blitz") $("nextBtn").classList.remove("hidden");
+
+    const fb = $("feedback");
+    fb.style.display = "block";
+    fb.innerHTML = `
+      <div class="frow ${gained>0?"ok":"bad"}">${perfect ? "🎉 Kusursuz! Tüm komşuları hatasız buldun!" : revealed ? "👀 Tüm komşular haritada gösterildi." : `👍 Komşular tamamlandı (${nbWrongClicks} hatalı tıklama)`}</div>
+      <div class="points">+${gained} puan</div>
+      <div class="city-fact">💡 ${current[5]}</div>`;
+
+    if(perfect) confetti();
+    updateHUD(true);
+
+    if(gameRule === "survival" && lives <= 0) setTimeout(endGame, 950);
+    else if(gameRule === "blitz") autoNextTimeout = setTimeout(() => { if(timeLeft > 0) nextQuestionOrEnd(); }, 850);
+  }
+
+  function recordRegionStat(region, gained){
+    if(!regionStats[region]) regionStats[region] = { earned: 0, possible: 0 };
+    regionStats[region].earned += Math.min(gained, 2);
+    regionStats[region].possible += 2;
+  }
+
+  function updateLivesHUD(){
+    $("livesChip").textContent = lives > 0 ? "❤️".repeat(lives) + "🖤".repeat(Math.max(0, 3 - lives)) : "💔";
+  }
+
+  /* ================= YAZMA, HARİTADA TIKLAMA & MİRAS ================= */
+  function submitAnswer(){
+    if(gameMode === "detective"){ submitDetectiveAnswer(); return; }
+    if(answered || !current || !["type","daily","duel"].includes(gameMode)) return;
+    const nameVal = $("nameInput").value.trim();
+    const plateVal = $("plateInput").value.trim();
+
+    const nInput = norm(nameVal);
+    const nTarget = norm(current[1]);
+    const exactName = Boolean(nameVal) && (nInput === nTarget || ALIASES[nInput] === current[0]);
+    const typoName = !exactName && Boolean(nameVal) && nTarget.length >= 5 && levenshtein(nInput, nTarget) === 1;
+    const nameOk = exactName || typoName;
+
+    const plateOk = /^\d{1,2}$/.test(plateVal) && parseInt(plateVal, 10) === current[0];
+    const baseGained = (nameOk ? 1 : 0) + (plateOk ? 1 : 0);
+
+    finalizeTurn(baseGained, nameOk, plateOk, typoName, null);
+  }
+
+  function handleMapProvinceClick(clickedIdx){
+    if(answered || !current || !["click","heritage"].includes(gameMode)) return;
+    const clickedCity = CITIES[clickedIdx];
+    const isMatch = clickedCity[0] === current[0];
+    const baseGained = isMatch ? 2 : 0;
+
+    if(!isMatch){
+      if(provEls[clickedIdx]) provEls[clickedIdx].classList.add("wrong-pick");
+      const [x1, y1] = cityPos(clickedCity);
+      const [x2, y2] = cityPos(current);
+      distanceLineEl.setAttribute("x1", x1.toFixed(1));
+      distanceLineEl.setAttribute("y1", y1.toFixed(1));
+      distanceLineEl.setAttribute("x2", x2.toFixed(1));
+      distanceLineEl.setAttribute("y2", y2.toFixed(1));
+      distanceLineEl.classList.remove("hidden");
+
+      wrongDotEl.setAttribute("cx", x1.toFixed(1));
+      wrongDotEl.setAttribute("cy", y1.toFixed(1));
+      wrongDotEl.classList.remove("hidden");
+    }
+
+    finalizeTurn(baseGained, isMatch, isMatch, false, clickedCity);
+  }
+
+  function finalizeTurn(baseGained, nameOk, plateOk, typoName, clickedCity){
+    const elapsedSec = (performance.now() - questionStartTime) / 1000;
+    const gotSpeedBonus = baseGained === 2 && elapsedSec <= 4.0 && !["daily","duel"].includes(gameMode) && !activeChallenge;
+    const totalGained = baseGained + (gotSpeedBonus ? 1 : 0);
+
+    score += totalGained;
+    streak = baseGained === 2 ? streak + 1 : 0;
+    if(streak > bestStreak) bestStreak = streak;
+    answered = true;
+
+    if(baseGained === 2){
+      markCityMastered(current[0]);
+      checkAllBadges({ speedUnder3: elapsedSec <= 3.0 });
+    } else if(!missedCities.some(c => c[0] === current[0])){
+      missedCities.push(current);
+    }
+
+    if(gameMode === "daily") dailyResults.push(baseGained === 2 ? "🟩" : baseGained === 1 ? "🟨" : "🟥");
+    if(gameMode === "duel"){
+      duelScores[duelTurn] += baseGained;
+      $("duelP1Score").textContent = duelScores[0];
+      $("duelP2Score").textContent = duelScores[1];
+    }
+
+    recordRegionStat(current[4], baseGained);
+    if(gameRule === "survival" && baseGained < 2 && !["daily","duel"].includes(gameMode) && !activeChallenge){
+      lives--;
+      updateLivesHUD();
+    }
+
+    $("hintBtn").disabled = true;
+
+    if(["type","daily","duel"].includes(gameMode)){
+      $("nameInput").disabled = $("plateInput").disabled = true;
+      $("submitBtn").classList.add("hidden");
+      $("nameInput").classList.add(nameOk ? "ok" : "bad");
+      $("plateInput").classList.add(plateOk ? "ok" : "bad");
+      $("plateWrap").classList.add(plateOk ? "ok" : "bad");
+      resetZoom();
+    }
+
+    if(gameRule !== "blitz" || ["daily","duel"].includes(gameMode) || activeChallenge){
+      $("nextBtn").classList.remove("hidden");
+    }
+
+    const [x, y] = cityPos(current);
+    markerEl.setAttribute("transform", `translate(${x.toFixed(1)},${y.toFixed(1)})`);
+    markerEl.classList.add("on");
+    markerQ.style.display = "none";
+
+    const statusClass = baseGained === 2 ? "good" : baseGained === 1 ? "half" : "bad";
+    const dot = dotEls[current[0]-1];
+    dot.classList.remove("good","half","bad");
+    dot.classList.add(statusClass);
+
+    const prov = provEls[current[0]-1];
+    if(prov){
+      prov.classList.remove("active","good","half","bad","wrong-pick");
+      prov.classList.add(statusClass);
+    }
+
+    labelEl.textContent = `${current[1]} (${String(current[0]).padStart(2,"0")})`;
+    labelEl.setAttribute("x", Math.min(Math.max(x, 55), 525));
+    labelEl.setAttribute("y", y < 32 ? y + 20 : y - 16);
+    labelEl.classList.add("on");
+
+    const plateBadge = `<span class="mini-plate"><span>TR</span><span>${String(current[0]).padStart(2,"0")}</span></span>`;
+    const speedTag = gotSpeedBonus ? `<span class="speed-badge">⚡ +1 Hız (${elapsedSec.toFixed(1)}s)</span>` : "";
+    const fb = $("feedback");
+    fb.style.display = "block";
+
+    if(gameMode === "click" || gameMode === "heritage"){
+      let hotColdHtml = "";
+      if(clickedCity && clickedCity[0] !== current[0]){
+        const km = haversineKm(clickedCity, current);
+        const [dirText, dirArrow] = compassDirection(clickedCity, current);
+        hotColdHtml = `
+          <div class="frow bad">❌ Tıkladığın il: <b>${clickedCity[1]} (${String(clickedCity[0]).padStart(2,"0")})</b></div>
+          <div class="frow" style="color:#fde047">🧭 Hedef <b>${km} km ${dirText} ${dirArrow}</b></div>
+        `;
+      }
+      fb.innerHTML = `
+        ${hotColdHtml}
+        <div class="frow ${baseGained===2?"ok":"bad"}">${baseGained===2?"✅ Harika! Doğru ili buldun:":"📍 Doğru konum:"} <b>${current[1]}</b> ${plateBadge}</div>
+        <div class="points">${baseGained===2?"🎉 +"+totalGained+" puan!":"😅 0 puan"} ${speedTag}</div>
+        <div class="region">🧭 ${current[4]} Bölgesi</div>
+        <div class="city-fact">💡 ${current[5]}</div>`;
+    } else {
+      const typoMsg = typoName ? ` <span class="typo-note">(Küçük yazım hatasıyla doğru sayıldı)</span>` : "";
+      fb.innerHTML = `
+        <div class="frow ${nameOk?"ok":"bad"}">${nameOk?"✅":"❌"} Şehir: ${nameOk ? "Doğru!" + typoMsg : "Yanlış — doğrusu: <b>"+current[1]+"</b>"}</div>
+        <div class="frow ${plateOk?"ok":"bad"}">${plateOk?"✅":"❌"} Plaka: ${plateOk ? "Doğru!" : "Yanlış — doğrusu:"} ${plateBadge}</div>
+        <div class="points">${baseGained===2?"🎉 +"+totalGained+" puan! Harikasın!":baseGained===1?"👍 +1 puan":"😅 0 puan"} ${speedTag}</div>
+        <div class="region">📍 ${current[4]} Bölgesi</div>
+        <div class="city-fact">💡 ${current[5]}</div>`;
+    }
+
+    if(baseGained === 0){ void fb.offsetWidth; fb.classList.add("shake"); }
+    if(baseGained === 2){ confetti(); sfx("win"); }
+    else if(baseGained === 1){ sfx("half"); }
+    else { sfx("nope"); }
+
+    updateHUD(true);
+
+    if(gameRule === "survival" && lives <= 0 && !["daily","duel"].includes(gameMode) && !activeChallenge){
+      autoNextTimeout = setTimeout(endGame, 950);
+    } else if(gameRule === "blitz" && !["daily","duel"].includes(gameMode) && !activeChallenge){
+      autoNextTimeout = setTimeout(() => { if(timeLeft > 0) nextQuestionOrEnd(); }, 750);
+    }
+  }
+
+  function nextQuestionOrEnd(){
+    idx++;
+    nextQuestion();
+  }
+
+  function updateHUD(bump){
+    $("qNum").textContent = (gameRule === "blitz" && !["daily","duel","route"].includes(gameMode) && !activeChallenge)
+      ? `${idx + 1}. Soru`
+      : `${Math.min(idx + 1, deck.length)}/${deck.length}`;
+    $("pScore").textContent = score;
+    $("pStreak").textContent = streak;
+    if(bump){
+      ["pScore","pStreak"].forEach(id => {
+        const e = $(id).parentElement;
+        e.classList.remove("bump");
+        void e.offsetWidth;
+        e.classList.add("bump");
+      });
+    }
+  }
+
+  /* ================= OYUN SONU, MEYDAN OKUMA & SKOR TABLOSU ================= */
+  function getModeLabel(){
+    const map = {
+      type:"Yazım", click:"Harita", blind:"Kör Harita", route:"Rota",
+      detective:"Dedektif", heritage:"Miras", neighbors:"Komşular", daily:"Günlük"
+    };
+    if(gameMode === "daily") return "Günlük";
+    if(gameRule === "blitz") return "Blitz";
+    if(gameRule === "survival") return "3 Can";
+    return map[gameMode] || "Yazım";
+  }
+
+  function endGame(){
+    clearTimers();
+    if(gameMode === "atlas"){ goHome(); return; }
+
+    $("dailyShareBox").classList.add("hidden");
+    $("challengeCompareBox").classList.add("hidden");
+    $("saveScoreSection").classList.remove("hidden");
+    $("duelEndBtns").classList.add("hidden");
+    $("createChallengeWrap").classList.toggle("hidden", ["duel","route"].includes(gameMode));
+
+    if(gameMode === "daily") recordDailyCompletion();
+
+    if(gameMode === "duel"){
+      $("saveScoreSection").classList.add("hidden");
+      $("duelEndBtns").classList.remove("hidden");
+      const [s1, s2] = duelScores;
+      const winnerText = s1 > s2 ? `🏆 Kazanan: ${duelNames[0]}!` : s2 > s1 ? `🏆 Kazanan: ${duelNames[1]}!` : "🤝 Dostluk Kazandı (Berabere)!";
+      $("endModalTitle").textContent = "⚔️ Düello Bitti!";
+      $("endScoreLabel").textContent = winnerText;
+      $("finalScore").textContent = `${s1} - ${s2}`;
+      $("finalStats").textContent = `${duelNames[0]}: ${s1} puan · ${duelNames[1]}: ${s2} puan`;
+    } else {
+      $("endModalTitle").textContent = gameMode === "daily" ? `📅 Günün Turu (${getTodayKey()})` : "🏁 Oyun Bitti!";
+      $("endScoreLabel").textContent = "Toplam puanın:";
+      const mult = ["blind","route"].includes(gameMode) ? 3 : gameMode === "detective" ? 5 : 2;
+      const answeredCount = Object.values(regionStats).reduce((acc, r) => acc + r.possible, 0);
+      const maxScore = (gameRule === "blitz" || gameRule === "survival") ? Math.max(answeredCount, score) : deck.length * mult;
+      const pct = maxScore ? Math.min(100, Math.round((score / maxScore) * 100)) : 0;
+
+      $("finalScore").textContent = (gameRule === "blitz" || gameRule === "survival") ? `${score} Puan` : `${score} / ${maxScore}`;
+      $("finalStats").textContent = `Başarı: %${pct} · En iyi seri: 🔥 ${bestStreak} · Pasaport: ${getMasteredSet().size}/81`;
+
+      if(gameMode === "daily" && dailyResults.length){
+        $("dailyShareBox").classList.remove("hidden");
+        $("dailyEmojiGrid").textContent = dailyResults.join("");
+      }
+
+      if(activeChallenge && activeChallenge.challengerScore !== undefined){
+        $("challengeCompareBox").classList.remove("hidden");
+        const cs = activeChallenge.challengerScore;
+        const cn = activeChallenge.challengerName || "Arkadaşın";
+        $("challengeCompareResult").textContent = score > cs
+          ? `🎉 Kazandın! Sen: ${score} — ${cn}: ${cs}`
+          : score < cs ? `😅 ${cn} önde! Sen: ${score} — ${cn}: ${cs}` : `🤝 Berabere! (${score} - ${cs})`;
+      }
+    }
+
+    const regEntries = Object.entries(regionStats);
+    if(regEntries.length){
+      $("regionReportBox").classList.remove("hidden");
+      regEntries.sort((a, b) => (b[1].earned / b[1].possible) - (a[1].earned / a[1].possible));
+      $("regionReportList").innerHTML = regEntries.map(([reg, st]) => {
+        const rPct = Math.round((st.earned / st.possible) * 100);
+        return `<div class="reg-bar-row">
+          <span class="reg-bar-name">${reg}</span>
+          <div class="reg-bar-track"><div class="reg-bar-fill" style="width:${rPct}%"></div></div>
+          <span class="reg-bar-pct">%${rPct}</span>
+        </div>`;
+      }).join("");
+    } else {
+      $("regionReportBox").classList.add("hidden");
+    }
+
+    if(missedCities.length > 0 && !["duel","route"].includes(gameMode)){
+      $("retryWrongWrap").classList.remove("hidden");
+      $("retryWrongBtn").textContent = `🔁 Hatalarımı Tekrar Et (${missedCities.length} İl)`;
+    } else {
+      $("retryWrongWrap").classList.add("hidden");
+    }
+
+    $("playerName").value = "";
+    $("nameWarn").textContent = "";
+    $("endModal").classList.add("on");
+    if(gameMode !== "duel") $("playerName").focus();
+  }
+
+  function createRoundChallengeLink(){
+    const playedCodes = deck.slice(0, Math.max(1, Math.min(idx + 1, 15))).map(item => Array.isArray(item) ? item[0] : 6);
+    const payload = {
+      title: "Arkadaş Meydan Okuması",
+      mode: ["type","click","blind","detective"].includes(gameMode) ? gameMode : "type",
+      codes: playedCodes,
+      challengerName: $("playerName").value.trim() || "Arkadaşın",
+      challengerScore: score
+    };
+    const token = encodePayload(payload);
+    const link = buildShareLink(token);
+    const msg = `🇹🇷 Türkiye Şehir & Plaka Meydan Okuması!\nBu ${playedCodes.length} ilde ${score} puan yaptım, geçebilir misin?\n🔗 Link: ${link}\n🔑 Kod: ${token}`;
+    copyTextWithFeedback(msg, $("createChallengeBtn"), "✅ Meydan Okuma Linki & Kodu Kopyalandı!");
+  }
+
+  function copyTextWithFeedback(text, btn, okLabel){
+    const orig = btn.textContent;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = okLabel;
+        setTimeout(() => { btn.textContent = orig; }, 2400);
+      }).catch(() => alert(text));
+    } else {
+      alert(text);
+    }
+  }
+
+  function copyDailyResult(){
+    const dStreak = getDailyStreakInfo().count;
+    const text = `🇹🇷 Türkiye Şehir & Plaka · ${getTodayKey()}\nPuan: ${score}/20 | Seri: 🔥 ${bestStreak} | Günlük Seri: ${dStreak} gün\n${dailyResults.join("")}`;
+    copyTextWithFeedback(text, $("copyDailyBtn"), "✅ Panoya Kopyalandı!");
+  }
+
+  function saveScore(){
+    const name = $("playerName").value.trim();
+    if(!name){
+      $("nameWarn").textContent = "⚠️ Bir isim yazmalısın!";
+      return;
+    }
+    const modeTag = getModeLabel();
+    const list = getSavedScores();
+    lastSaveTime = Date.now();
+    list.push({ n: name, s: score, m: modeTag, t: lastSaveTime });
+    list.sort((a,b) => b.s - a.s);
+    setSavedScores(list.slice(0, 100));
+    boardFilter = "ALL";
+    syncBoardTabUI();
+    openBoard();
+  }
+
+  function openBoard(){
+    $("endModal").classList.remove("on");
+    renderBoard();
+    $("boardModal").classList.add("on");
+  }
+
+  function syncBoardTabUI(){
+    $("boardTabs").querySelectorAll(".board-tab").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.filter === boardFilter);
+    });
+  }
+
+  function renderBoard(){
+    const all = getSavedScores();
+    const list = boardFilter === "ALL" ? all : all.filter(r => r.m === boardFilter);
+    const medals = ["🥇","🥈","🥉"];
+    $("boardList").innerHTML = list.length
+      ? list.slice(0, 12).map((r,i) => `
+        <li class="${r.t===lastSaveTime?"me":""}">
+          <span class="rk">${medals[i]||"#"+(i+1)}</span>
+          <span class="nm">${escapeHtml(r.n)}</span>
+          <span class="sc">${r.s} puan ${r.m ? `(${escapeHtml(r.m)})` : ""}</span>
+        </li>`).join("")
+      : `<div class="empty">Bu kategoride henüz kayıtlı skor yok. 🚀</div>`;
+  }
+
+  function exportBoard(){
+    const list = getSavedScores();
+    const lines = [
+      "🇹🇷 TÜRKİYE ŞEHİR & PLAKA OYUNU - SKOR TABLOSU",
+      `Ustalık Pasaportu: ${getMasteredSet().size} / 81 İl · Rozetler: ${getUnlockedBadges().size}/${BADGE_DEFS.length}`,
+      "--------------------------------------------",
+      ...list.map((r, i) => `${i + 1}. ${r.n} — ${r.s} puan [${r.m || "Klasik"}]`)
+    ].join("\n");
+    const blob = new Blob([lines], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "turkiye-sehir-oyunu-skorlar.txt";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function clearBoard(e){
+    if(e) e.preventDefault();
+    if(confirm("Tüm skorlar silinecek. Emin misin?")){
+      setSavedScores([]);
+      lastSaveTime = null;
+      renderBoard();
+    }
+  }
+
+  /* ================= ROZETLER & ÖZEL TEST OLUŞTURUCU MODALLARI ================= */
+  function openBadgesModal(){
+    const unlocked = getUnlockedBadges();
+    $("badgesModalSub").textContent = `Açılan rozetler: ${unlocked.size} / ${BADGE_DEFS.length}`;
+    $("badgeGridList").innerHTML = BADGE_DEFS.map(b => `
+      <div class="badge-item ${unlocked.has(b.id) ? "unlocked" : ""}">
+        <span class="badge-ico">${unlocked.has(b.id) ? b.ico : "🔒"}</span>
+        <div>
+          <div class="badge-name">${b.name}</div>
+          <div class="badge-desc">${b.desc}</div>
+        </div>
+      </div>
+    `).join("");
+    $("badgesModal").classList.add("on");
+  }
+
+  function renderCityPickerGrid(){
+    $("pickedCountLabel").textContent = `Seçilen il: ${customSelectedCodes.size}`;
+    $("cityPickerGrid").innerHTML = CITIES.map(c => `
+      <button type="button" class="pick-chip ${customSelectedCodes.has(c[0]) ? "selected" : ""}" data-pick-code="${c[0]}">
+        ${String(c[0]).padStart(2,"0")} ${c[1]}
+      </button>
+    `).join("");
+
+    $("cityPickerGrid").querySelectorAll("[data-pick-code]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const code = parseInt(btn.dataset.pickCode, 10);
+        if(customSelectedCodes.has(code)) customSelectedCodes.delete(code);
+        else customSelectedCodes.add(code);
+        renderCityPickerGrid();
+      });
+    });
+  }
+
+  function openBuilderModal(){
+    renderCityPickerGrid();
+    $("builderModal").classList.add("on");
+  }
+
+  function restart(){
+    closeModal("boardModal");
+    closeModal("endModal");
+    startGame(null, activeChallenge);
+  }
+
+  function goHome(){
+    clearTimers();
+    activeChallenge = null;
+    closeModal("boardModal");
+    closeModal("endModal");
+    $("gameScreen").style.display = "none";
+    $("startScreen").style.display = "block";
+    refreshPassportBanner();
+  }
+
+  function closeModal(id){ $(id).classList.remove("on"); }
+
+  function toggleMute(){
+    muted = !muted;
+    $("muteBtn").textContent = muted ? "🔇 Ses Kapalı" : "🔊 Ses Açık";
+  }
+
+  /* ================= EFEKTLER & SES ================= */
+  function confetti(){
+    const layer = $("confettiLayer");
+    const colors = ["#fbbf24","#f43f5e","#22c55e","#3b82f6","#a78bfa","#f97316"];
+    for(let i=0;i<50;i++){
+      const c = document.createElement("span");
+      c.className="cf";
+      c.style.left = Math.random()*100+"vw";
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      c.style.animationDuration = (1.5+Math.random()*1.4)+"s";
+      c.style.animationDelay = Math.random()*0.3+"s";
+      c.style.transform = `rotate(${Math.random()*360}deg)`;
+      layer.appendChild(c);
+      setTimeout(()=>c.remove(),3400);
+    }
+  }
+
+  function sfx(kind){
+    if(muted) return;
+    try{
+      audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+      const note = (f,t,d,type="sine")=>{
+        const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+        o.type=type; o.frequency.value=f; o.connect(g); g.connect(audioCtx.destination);
+        g.gain.setValueAtTime(0.11,audioCtx.currentTime+t);
+        g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+t+d);
+        o.start(audioCtx.currentTime+t); o.stop(audioCtx.currentTime+t+d);
+      };
+      if(kind==="win"){
+        const mult = Math.pow(1.045, Math.min(streak, 12));
+        note(580 * mult, 0, .14);
+        note(780 * mult, .11, .18);
+      }
+      else if(kind==="half"){ note(520,0,.12); }
+      else if(kind==="nope"){ note(190,0,.28,"sawtooth"); }
+    }catch(e){}
+  }
+
+  /* ================= BAŞLATMA & OLAY BAĞLANTILARI ================= */
+  function bindPillGroup(containerId, callback){
+    const box = $(containerId);
+    box.querySelectorAll(".pill").forEach(btn => {
+      btn.addEventListener("click", () => {
+        box.querySelectorAll(".pill").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        callback(btn);
+      });
+    });
+  }
+
+  function updateSetupVisibility(){
+    $("duelSetupBox").classList.toggle("hidden", gameMode !== "duel");
+    $("ruleGroup").classList.toggle("hidden", ["daily","duel","atlas","route"].includes(gameMode));
+    $("regionGroup").classList.toggle("hidden", ["daily","atlas","route"].includes(gameMode));
+  }
+
+  function init(){
+    // Komşuluk grafiğini çift yönlü garanti altına al
+    for(const a in NEIGHBORS){
+      NEIGHBORS[a].forEach(b => {
+        if(NEIGHBORS[b] && !NEIGHBORS[b].includes(+a)) NEIGHBORS[b].push(+a);
+      });
+    }
+
+    buildMap();
+    refreshPassportBanner();
+    checkIncomingUrlChallenge();
+
+    bindPillGroup("modePills", btn => {
+      activeChallenge = null;
+      gameMode = btn.dataset.mode;
+      updateSetupVisibility();
+    });
+    bindPillGroup("rulePills", btn => { gameRule = btn.dataset.rule; });
+    bindPillGroup("regionPills", btn => { selectedRegion = btn.dataset.reg; });
+
+    $("physicalToggleBtn").addEventListener("click", () => {
+      physicalLayerOn = !physicalLayerOn;
+      physicalLayerEl.classList.toggle("hidden", !physicalLayerOn);
+      $("physicalToggleBtn").style.borderColor = physicalLayerOn ? "#38bdf8" : "";
+      $("physicalToggleBtn").style.color = physicalLayerOn ? "#7dd3fc" : "";
+    });
+
+    $("openAtlasQuickBtn").addEventListener("click", () => {
+      gameMode = "atlas";
+      startGame();
+      passportViewOn = true;
+      $("map").classList.add("passport-view");
+      $("passportMapToggleBtn").textContent = "🎨 Bölge Renkleri";
+      applyPassportHighlights();
+    });
+
+    $("passportMapToggleBtn").addEventListener("click", () => {
+      passportViewOn = !passportViewOn;
+      $("map").classList.toggle("passport-view", passportViewOn);
+      $("passportMapToggleBtn").textContent = passportViewOn ? "🎨 Bölge Renkleri" : "🏅 Pasaport";
+      if(passportViewOn) applyPassportHighlights();
+    });
+
+    // Dokunmatik plaka tuş takımı
+    $("toggleNumpadBtn").addEventListener("click", () => {
+      $("mobileNumpad").classList.toggle("hidden");
+    });
+    $("mobileNumpad").querySelectorAll(".numpad-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if(answered) return;
+        const k = btn.dataset.key;
+        const inp = $("plateInput");
+        if(k === "DEL") inp.value = inp.value.slice(0, -1);
+        else if(k === "OK") submitAnswer();
+        else if(inp.value.length < 2) inp.value += k;
+      });
+    });
+
+    // Meydan Okuma & Özel Test
+    $("acceptChallengeBtn").addEventListener("click", () => {
+      if(activeChallenge) startGame(null, activeChallenge);
+    });
+    $("dismissChallengeBtn").addEventListener("click", () => {
+      activeChallenge = null;
+      $("incomingChallengeBanner").classList.add("hidden");
+    });
+    $("openBuilderBtn").addEventListener("click", openBuilderModal);
+    $("closeBuilderBtn").addEventListener("click", () => closeModal("builderModal"));
+
+    $("loadChallengeCodeBtn").addEventListener("click", () => {
+      const parsed = decodePayload($("pasteChallengeInput").value);
+      if(!parsed){ alert("Geçersiz meydan okuma kodu veya linki!"); return; }
+      closeModal("builderModal");
+      setIncomingChallenge(parsed);
+      startGame(null, parsed);
+    });
+
+    $("pickRandom10Btn").addEventListener("click", () => {
+      customSelectedCodes = new Set(shuffle([...CITIES]).slice(0, 10).map(c => c[0]));
+      renderCityPickerGrid();
+    });
+    $("clearPickedBtn").addEventListener("click", () => {
+      customSelectedCodes.clear();
+      renderCityPickerGrid();
+    });
+    $("playCustomTestBtn").addEventListener("click", () => {
+      if(customSelectedCodes.size === 0){ alert("En az 1 il seçmelisin!"); return; }
+      const obj = {
+        title: $("customTestTitle").value.trim() || "Özel Test",
+        mode: $("customTestMode").value,
+        codes: [...customSelectedCodes]
+      };
+      activeChallenge = obj;
+      startGame(null, obj);
+    });
+    $("shareCustomTestBtn").addEventListener("click", () => {
+      if(customSelectedCodes.size === 0){ alert("En az 1 il seçmelisin!"); return; }
+      const obj = {
+        title: $("customTestTitle").value.trim() || "Özel Türkiye Testi",
+        mode: $("customTestMode").value,
+        codes: [...customSelectedCodes]
+      };
+      const token = encodePayload(obj);
+      const link = buildShareLink(token);
+      copyTextWithFeedback(`🇹🇷 ${obj.title} (${obj.codes.length} İl)\n🔗 Link: ${link}\n🔑 Kod: ${token}`, $("shareCustomTestBtn"), "✅ Link & Kod Kopyalandı!");
+    });
+
+    $("createChallengeBtn").addEventListener("click", createRoundChallengeLink);
+
+    // Rozetler Modalı
+    $("openBadgesHeaderBtn").addEventListener("click", openBadgesModal);
+    $("openBadgesStartBtn").addEventListener("click", openBadgesModal);
+    $("closeBadgesBtn").addEventListener("click", () => closeModal("badgesModal"));
+
+    $("startBtn").addEventListener("click", () => { activeChallenge = null; startGame(); });
+    $("openBoardStartBtn").addEventListener("click", openBoard);
+    $("submitBtn").addEventListener("click", submitAnswer);
+    $("undoRouteBtn").addEventListener("click", undoRouteStep);
+    $("revealRouteBtn").addEventListener("click", () => finishRouteRound(true));
+    $("revealNbBtn").addEventListener("click", () => completeNeighborRound(true));
+    $("nextBtn").addEventListener("click", nextQuestionOrEnd);
+    $("endBtn").addEventListener("click", endGame);
+    $("saveScoreBtn").addEventListener("click", saveScore);
+    $("skipSaveBtn").addEventListener("click", openBoard);
+    $("copyDailyBtn").addEventListener("click", copyDailyResult);
+    $("restartBtn").addEventListener("click", restart);
+    $("duelRestartBtn").addEventListener("click", restart);
+    $("goHomeBtn").addEventListener("click", goHome);
+    $("duelHomeBtn").addEventListener("click", goHome);
+    $("closeBoardBtn").addEventListener("click", () => closeModal("boardModal"));
+    $("clearBoardBtn").addEventListener("click", clearBoard);
+    $("exportBoardBtn").addEventListener("click", e => { e.preventDefault(); exportBoard(); });
+    $("muteBtn").addEventListener("click", toggleMute);
+    $("hintBtn").addEventListener("click", showHint);
+
+    $("zoomInBtn").addEventListener("click", () => zoomByFactor(0.75));
+    $("zoomOutBtn").addEventListener("click", () => zoomByFactor(1.33));
+    $("zoomResetBtn").addEventListener("click", resetZoom);
+
+    $("boardTabs").querySelectorAll(".board-tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        boardFilter = tab.dataset.filter;
+        syncBoardTabUI();
+        renderBoard();
+      });
+    });
+
+    $("retryWrongBtn").addEventListener("click", () => {
+      const retryPool = [...missedCities];
+      closeModal("endModal");
+      activeChallenge = null;
+      if(["daily","heritage"].includes(gameMode)) gameMode = "type";
+      startGame(retryPool);
+    });
+
+    $("nameInput").addEventListener("keydown", e => {
+      if(e.key === "Enter"){ e.preventDefault(); e.stopPropagation(); $("plateInput").focus(); }
+    });
+    $("plateInput").addEventListener("keydown", e => {
+      if(e.key === "Enter"){ e.preventDefault(); e.stopPropagation(); submitAnswer(); }
+    });
+    $("detectiveInput").addEventListener("keydown", e => {
+      if(e.key === "Enter"){ e.preventDefault(); e.stopPropagation(); submitDetectiveAnswer(); }
+    });
+    $("playerName").addEventListener("keydown", e => {
+      if(e.key === "Enter"){ e.preventDefault(); e.stopPropagation(); saveScore(); }
+    });
+
+    document.addEventListener("keydown", e => {
+      if(e.key !== "Enter") return;
+      if($("endModal").classList.contains("on") || $("boardModal").classList.contains("on") || $("builderModal").classList.contains("on")) return;
+      if($("gameScreen").style.display === "grid" && answered && (gameRule !== "blitz" || ["daily","duel","route"].includes(gameMode) || activeChallenge)){
+        e.preventDefault();
+        nextQuestionOrEnd();
+      }
+    });
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
